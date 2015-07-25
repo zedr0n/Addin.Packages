@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace TestAddin
 {
@@ -13,9 +14,9 @@ namespace TestAddin
 
     public class DNA
     {
-        public Ticker Ticker_readFromXML()
+        public Ticker Ticker_readFromXML(Stream stream)
         {
-            return Ticker.readFromXML();
+            return Ticker.readFromXML(stream);
         }
     }
 }
