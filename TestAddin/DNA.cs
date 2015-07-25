@@ -14,9 +14,9 @@ namespace TestAddin
 
     public class DNA
     {
-        public Ticker Ticker_readFromXML(Stream stream)
+        public Ticker Ticker_readFromXML(string xml)
         {
-            return Ticker.readFromXML(stream);
+            return Ticker.readFromXML(xml);
         }
     }
 }
