@@ -45,7 +45,6 @@
   <ItemGroup>
     <Compile Include="DNA.cs" />
     <Compile Include="HistoricalData.cs" />
-    <Compile Include="MyFunctions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ticker.cs" />
   </ItemGroup>

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.IO;
+using ExcelDna.ComInterop;
+using ExcelDna.Integration;
 
 namespace TestAddin
 {
@@ -19,4 +21,18 @@ namespace TestAddin
             return Ticker.loadFromSQL(name);
         }
     }
+
+    [ComVisible(false)]
+    class ExcelAddin : IExcelAddIn
+    {
+        public void AutoOpen()
+        {
+            ComServer.DllRegisterServer();
+        }
+        public void AutoClose()
+        {
+            ComServer.DllUnregisterServer();
+        }
+    }
+
 }
