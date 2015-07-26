@@ -18,7 +18,7 @@ namespace TestAddin
     {
         public Ticker loadTicker(string name)
         {
-            return Ticker.loadFromSQL(name);
+            return Ticker.loadFromDB(name);
         }
     }
 
