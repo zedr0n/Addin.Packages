@@ -45,7 +45,7 @@ namespace TestAddin
 
         private static string TimestampHandle(string handle)
         {
-            return handle + "::" + DateTime.Now.ToString("HH:mm:ss");
+            return handle + "::" + DateTime.Now.ToString("mm:ss.ffff");
         }
     }
 }
