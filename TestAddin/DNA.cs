@@ -8,25 +8,10 @@ using ExcelDna.Registration;
 
 namespace TestAddin
 {
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.AutoDispatch)]
-    [ProgId("DNA")]
-
-    public class Dna
-    {
-        public Ticker LoadTicker(string name)
-        {
-            return Ticker.LoadFromDb(name);
-        }
-    }
-
-    [ComVisible(false)]
     class ExcelAddin : IExcelAddIn
     {
         public void AutoOpen()
         {
-            ComServer.DllRegisterServer();
-
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig();
@@ -40,7 +25,6 @@ namespace TestAddin
         }
         public void AutoClose()
         {
-            ComServer.DllUnregisterServer();
         }
 
         private static ParameterConversionConfiguration GetParameterConversionConfig()
