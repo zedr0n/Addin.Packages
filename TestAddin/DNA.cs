@@ -1,8 +1,4 @@
-﻿using System.IO.Pipes;
-using System.Linq;
-using System.Net.Mime;
-using System.Runtime.InteropServices;
-using ExcelDna.ComInterop;
+﻿using System.Linq;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 
@@ -12,6 +8,8 @@ namespace TestAddin
     {
         public void AutoOpen()
         {
+            ExcelIntegration.RegisterUnhandledExceptionHandler(ex => ExcelError.ExcelErrorValue);
+
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
             var conversionConfig = GetParameterConversionConfig();
