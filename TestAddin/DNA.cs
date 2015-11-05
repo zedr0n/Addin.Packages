@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.IO;
 using ExcelDna.ComInterop;
 using ExcelDna.Integration;
 
@@ -14,11 +9,11 @@ namespace TestAddin
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
     [ProgId("DNA")]
 
-    public class DNA
+    public class Dna
     {
-        public Ticker loadTicker(string name)
+        public Ticker LoadTicker(string name)
         {
-            return Ticker.loadFromDB(name);
+            return Ticker.LoadFromDb(name);
         }
     }
 
