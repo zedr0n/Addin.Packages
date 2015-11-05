@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ExcelDna.Integration">
-      <HintPath>..\packages\Excel-DNA.Lib.0.32.0\lib\ExcelDna.Integration.dll</HintPath>
+    <Reference Include="ExcelDna.Integration, Version=0.33.5730.40390, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExcelDna.Integration.0.33.9\lib\ExcelDna.Integration.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -58,11 +58,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(SolutionDir)\packages\Excel-DNA.0.32.0\tools\ExcelDna.xll" "$(TargetDir)TestAddin-AddIn.xll*" /C /Y
+    <PostBuildEvent>xcopy "$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDna.xll" "$(TargetDir)TestAddin-AddIn.xll*" /C /Y
 xcopy "$(TargetDir)TestAddin-AddIn.dna*" "$(TargetDir)TestAddin-AddIn64.dna*" /C /Y
-xcopy "$(SolutionDir)\packages\Excel-DNA.0.32.0\tools\ExcelDna64.xll" "$(TargetDir)TestAddin-AddIn64.xll*" /C /Y
-"$(SolutionDir)\packages\Excel-DNA.0.32.0\tools\ExcelDnaPack.exe" "$(TargetDir)TestAddin-AddIn.dna" /Y
-"$(SolutionDir)\packages\Excel-DNA.0.32.0\tools\ExcelDnaPack.exe" "$(TargetDir)TestAddin-AddIn64.dna" /Y</PostBuildEvent>
+xcopy "$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDna64.xll" "$(TargetDir)TestAddin-AddIn64.xll*" /C /Y
+"$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDnaPack.exe" "$(TargetDir)TestAddin-AddIn.dna" /Y
+"$(SolutionDir)\packages\ExcelDna.AddIn.0.33.9\tools\ExcelDnaPack.exe" "$(TargetDir)TestAddin-AddIn64.dna" /Y</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
