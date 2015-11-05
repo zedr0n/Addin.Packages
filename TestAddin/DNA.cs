@@ -1,5 +1,6 @@
 ﻿using System.IO.Pipes;
 using System.Linq;
+using System.Net.Mime;
 using System.Runtime.InteropServices;
 using ExcelDna.ComInterop;
 using ExcelDna.Integration;
@@ -36,6 +37,10 @@ namespace TestAddin
                              .ProcessParameterConversions(conversionConfig)
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
+
+            dynamic app = ExcelDnaUtil.Application;
+
+            app.Range();
         }
         public void AutoClose()
         {
