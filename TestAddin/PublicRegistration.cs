@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -33,12 +34,17 @@ namespace TestAddin
     {
         private static IEnumerable<MethodInfo> FindAllMethods()
         {
-            // load the Public assembly
-            var theAssembly = typeof (PublicTicker).Assembly;
+            var allMethods = new List<MethodInfo>();
+            // load the Public assemblies
+            foreach (var theAssembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (theAssembly.GetCustomAttributes(typeof (PublicAttribute), false).Length == 0)
+                    continue; 
 
-            var allMethods = theAssembly.GetTypes()
-                .SelectMany(t => t.GetMethods())
-                .Where(m => m.GetCustomAttributes(typeof (IExcelFunctionAttribute), false).Length > 0).ToList();
+                allMethods.AddRange(theAssembly.GetTypes()
+                    .SelectMany(t => t.GetMethods())
+                    .Where(m => m.GetCustomAttributes(typeof(IExcelFunctionAttribute), false).Length > 0));
+            }
 
             return allMethods;
         }
