@@ -52,7 +52,7 @@
     <Compile Include="PublicRegistration.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="TestAddin-AddIn.dna">
+    <Content Include="CommonAddin-AddIn.dna">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />

@@ -8,7 +8,7 @@ using ExcelDna.Registration;
 
 using ExcelInterfaces;
 
-namespace TestAddin
+namespace CommonAddin
 {
     public static class AttributeExtension
     {

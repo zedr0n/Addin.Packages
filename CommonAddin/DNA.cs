@@ -6,7 +6,7 @@ using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 
-namespace TestAddin
+namespace CommonAddin
 {
     public static class Extensions
     {
