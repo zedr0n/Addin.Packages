@@ -11,6 +11,8 @@ namespace TestAddin
         {
             return EqualityComparer<T>.Default.Equals(obj, default(T));
         }
+
+        //public static ExcelFunctionAttribute()
     }
 
     class ExcelAddin : IExcelAddIn
@@ -29,6 +31,8 @@ namespace TestAddin
                              .ProcessParameterConversions(conversionConfig)
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
+
+            PublicRegistration.GetAllRegistrations().RegisterFunctions();
         }
         public void AutoClose()
         {
@@ -36,37 +40,11 @@ namespace TestAddin
 
         private static ParameterConversionConfiguration GetParameterConversionConfig()
         {
-            // NOTE: The parameter conversion list is processed once per parameter.
-            //       Parameter conversions will apply from most inside, to most outside.
-            //       So to apply a conversion chain like
-            //           string -> Type1 -> Type2
-            //       we need to register in the (reverse) order
-            //           Type1 -> Type2
-            //           string -> Type1
-            //
-            //       (If the registration were in the order
-            //           string -> Type1
-            //           Type1 -> Type2
-            //       the parameter (starting as Type2) would not match the first conversion,
-            //       then the second conversion (Type1 -> Type2) would be applied, and no more,
-            //       leaving the parameter having Type1 (and probably not eligible for Excel registration.)
-            //      
-            //
-            //       Return conversions are also applied from most inside to most outside.
-            //       So to apply a return conversion chain like
-            //           Type1 -> Type2 -> string
-            //       we need to register the ReturnConversions as
-            //           Type1 -> Type2 
-            //           Type2 -> string
-            //       
-
             var paramConversionConfig = new ParameterConversionConfiguration()
 
                 // Register the Standard Parameter Conversions (with the optional switch on how to treat references to empty cells)
                 .AddParameterConversion(ParameterConversions.GetNullableConversion(treatEmptyAsMissing: false))
                 .AddParameterConversion(ParameterConversions.GetOptionalConversion(treatEmptyAsMissing: false))
-
-                //  .AddParameterConversion((string value) => convert2(convert1(value)));
 
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
                 // It uses the TypeConversion utility class defined in ExcelDna.Registration to get an object->string

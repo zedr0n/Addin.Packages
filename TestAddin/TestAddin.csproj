@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="DNA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PublicTicker.cs" />
+    <Compile Include="PublicRegistration.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestAddin-AddIn.dna">
@@ -58,10 +58,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Backend\Backend.csproj">
-      <Project>{ac5ad58e-ddce-4cb4-a187-109112515d2b}</Project>
-      <Name>Backend</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Public\Public.csproj">
       <Project>{c1d87c61-d45f-44e0-ac9c-f5e1893521b7}</Project>
       <Name>Public</Name>
