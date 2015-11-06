@@ -1,9 +1,18 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 
 namespace TestAddin
 {
+    public static class Extensions
+    {
+        public static bool IsDefault<T>(this T obj)
+        {
+            return EqualityComparer<T>.Default.Equals(obj, default(T));
+        }
+    }
+
     class ExcelAddin : IExcelAddIn
     {
         public void AutoOpen()
