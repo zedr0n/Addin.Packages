@@ -5,7 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
-using Public;
+
+using ExcelInterfaces;
 
 namespace TestAddin
 {
