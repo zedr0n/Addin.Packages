@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 
@@ -15,10 +18,23 @@ namespace TestAddin
         //public static ExcelFunctionAttribute()
     }
 
-    class ExcelAddin : IExcelAddIn
+    public class ExcelAddin : IExcelAddIn
     {
-        public void AutoOpen()
+        private static void LoadReferences()
         {
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).Distinct().ToArray();
+
+
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
+            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+        }
+
+        public virtual void AutoOpen()
+        {
+            LoadReferences();
+
             ExcelIntegration.RegisterUnhandledExceptionHandler(ex => ExcelError.ExcelErrorValue);
 
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.

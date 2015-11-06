@@ -13,8 +13,8 @@ namespace ExcelInterfaces
     {
         public string Name = null;
         public string Description = null;
-        public string Category = null;
-        public string HelpTopic = null;
+        public readonly string Category = null;
+        public readonly string HelpTopic = null;
         public bool IsVolatile = false;
         public bool IsHidden = false;
         public bool IsExceptionSafe = false;
