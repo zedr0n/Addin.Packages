@@ -14,6 +14,9 @@
     <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>Tag1 Tag2</tags>
+    <dependencies>
+      <dependency id="ExcelDna.Addin" version="0.33.9" />
+    </dependencies>
   </metadata>
   <files>
     <file src="content\*" target="content"/>
