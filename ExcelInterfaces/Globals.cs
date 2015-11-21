@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace ExcelInterfaces
 {
+    public interface IPublicObject
+    {
+        string Handle { get; set; }
+    }
+
     public static class Globals
     {
         private static readonly Dictionary<string, object> Items = new Dictionary<string, object>();
@@ -27,6 +32,17 @@ namespace ExcelInterfaces
             var tHandle = TimestampHandle(handle) + "::" + obj.GetType().Name + "::";
             if (!Items.ContainsKey(tHandle))
                 Items.Add(tHandle,obj);
+
+            return tHandle;
+        }
+
+        public static string AddItem(string handle, IPublicObject obj)
+        {
+            var tHandle = TimestampHandle(handle) + "::" + obj.GetType().BaseType?.Name + "::";
+            if (!Items.ContainsKey(tHandle))
+                Items.Add(tHandle, obj);
+
+            obj.Handle = handle;
 
             return tHandle;
         }
