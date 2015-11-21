@@ -20,5 +20,6 @@
   </metadata>
   <files>
     <file src="content\*" target="content"/>
+    <file src="bin\$configuration$\$id$.pdb" target="lib\net45"/>
   </files>
 </package>
