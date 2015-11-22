@@ -48,7 +48,10 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            PublicRegistration.GetAllRegistrations().RegisterFunctions();
+            PublicRegistration.GetAllRegistrations()
+                .ProcessParameterConversions(conversionConfig)
+                .ProcessParamsRegistrations()
+                .RegisterFunctions();
         }
         public void AutoClose()
         {
@@ -65,6 +68,7 @@ namespace CommonAddin
                 // This parameter conversion adds support for string[] parameters (by accepting object[] instead).
                 // It uses the TypeConversion utility class defined in ExcelDna.Registration to get an object->string
                 // conversion that is consist with Excel (in this case, Excel is called to do the conversion).
+                .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToInt32).ToArray())
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
 
                 .AddReturnConversion((object obj) => obj.IsDefault() ? ExcelError.ExcelErrorNA : obj);
