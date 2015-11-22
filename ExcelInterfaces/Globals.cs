@@ -42,7 +42,8 @@ namespace ExcelInterfaces
             if (!Items.ContainsKey(tHandle))
                 Items.Add(tHandle, obj);
 
-            obj.Handle = handle;
+            // store timestamped handle
+            obj.Handle = tHandle;
 
             return tHandle;
         }
