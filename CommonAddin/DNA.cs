@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
+using ExcelInterfaces;
 
 namespace CommonAddin
 {
@@ -35,7 +36,14 @@ namespace CommonAddin
         {
             LoadReferences();
 
-            ExcelIntegration.RegisterUnhandledExceptionHandler(ex => ExcelError.ExcelErrorValue);
+            ExcelIntegration.RegisterUnhandledExceptionHandler(ex =>
+            {
+                var errorMessage = ex as Error;
+                if (errorMessage == null)
+                    return ExcelError.ExcelErrorValue;
+
+                return errorMessage.Message;
+            });
 
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?

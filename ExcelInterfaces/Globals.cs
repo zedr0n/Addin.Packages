@@ -20,6 +20,14 @@ namespace ExcelInterfaces
         }
     }
 
+    public class Error : ApplicationException
+    {
+        public Error(string message) :
+            base(message)
+        {
+        }
+    }
+
     public static class PublicObject
     {
         public static T This<T>(string handle) where T : IPublicObject
