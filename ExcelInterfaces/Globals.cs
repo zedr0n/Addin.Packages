@@ -31,17 +31,41 @@ namespace ExcelInterfaces
             return publicObject;
         }
 
-        public static string WriteToXml(this IPublicObject obj)
+        public static string WriteToXml2(this IPublicObject obj) 
         {
-            var fieldList = new List<FieldInfo>(obj.GetType().GetFields().Where(info => info.IsPublic));
+            var fieldList = new List<FieldInfo>(obj.GetType().GetFields()
+                .Where(info => info.IsPublic))
+                .Where(info => info.GetValue(obj).GetType().GetInterfaces().Contains(typeof(IPublicObject)))
+                .Where(info => info.FieldType != info.GetValue(obj).GetType());
             var typesList = fieldList.Select(field => field.GetValue(obj).GetType()).Distinct().ToList();
-            var x = new XmlSerializer(obj.GetType(),typesList.ToArray());
+
+            var x = new XmlSerializer(obj.GetType(),typesList.ToArray() );
             var sw = new StringWriter();
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
 
             x.Serialize(sw, obj, ns);
             return sw.ToString();
+        }
+
+        public static string WriteToXml<T>(this T obj) where T : IPublicObject, ICloneable
+        {
+            var privateObject = obj.Clone();
+
+            var x = new XmlSerializer(privateObject.GetType());
+            var sw = new StringWriter();
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+
+            x.Serialize(sw, privateObject, ns);
+            return sw.ToString();
+        }
+
+        public static T ReadFromXml<T>(string xml)
+        {
+            var sr = new StringReader(xml);
+            var x = new XmlSerializer(typeof(T));
+            return (T)x.Deserialize(sr);
         }
     }
 
