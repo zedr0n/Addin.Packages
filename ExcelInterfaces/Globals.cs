@@ -1,11 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Xml.Serialization;
 
 namespace ExcelInterfaces
 {
     public interface IPublicObject
     {
         string Handle { get; set; }
+    }
+
+    public class ObjectMissing : ApplicationException
+    {
+        public ObjectMissing(string handle) :
+            base("Object missing : " + handle)
+        {
+        }
+    }
+
+    public static class PublicObject
+    {
+        public static T This<T>(string handle) where T : IPublicObject
+        {
+            T publicObject;
+            if (!Globals.TryGetItem(handle, out publicObject))
+                throw new ObjectMissing(handle);
+
+            return publicObject;
+        }
+
+        public static string WriteToXml(this IPublicObject obj)
+        {
+            var fieldList = new List<FieldInfo>(obj.GetType().GetFields().Where(info => info.IsPublic));
+            var typesList = fieldList.Select(field => field.GetValue(obj).GetType()).Distinct().ToList();
+            var x = new XmlSerializer(obj.GetType(),typesList.ToArray());
+            var sw = new StringWriter();
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+
+            x.Serialize(sw, obj, ns);
+            return sw.ToString();
+        }
     }
 
     public static class Globals
