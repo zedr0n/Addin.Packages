@@ -12,18 +12,26 @@ namespace ExcelInterfaces
         string Handle { get; set; }
     }
 
-    public class ObjectMissing : ApplicationException
-    {
-        public ObjectMissing(string handle) :
-            base("Object missing : " + handle)
-        {
-        }
-    }
-
     public class Error : ApplicationException
     {
         public Error(string message) :
             base(message)
+        {
+        }
+    }
+
+    public class PropertyMissing : Error
+    {
+        public PropertyMissing(string paramName) :
+            base("Parameter missing : " + paramName)
+        {
+        }
+    }
+
+    public class ObjectMissing : Error
+    {
+        public ObjectMissing(string handle) :
+            base("Object missing : " + handle)
         {
         }
     }
