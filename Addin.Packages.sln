@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{AC5AD58E-DDCE-4CB4-A187-109112515D2B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public", "Public\Public.csproj", "{C1D87C61-D45F-44E0-AC9C-F5E1893521B7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelInterfaces", "ExcelInterfaces\ExcelInterfaces.csproj", "{10C963F9-CB73-4737-BE7E-72D68C58BFE4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAddin", "MyAddin\MyAddin.csproj", "{6B69C78C-80E6-48DB-A6CC-328572B2F8A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonAddin", "CommonAddin\CommonAddin.csproj", "{DD64BD43-4400-422A-952D-B99E1EBE33E7}"
 EndProject
@@ -19,22 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AC5AD58E-DDCE-4CB4-A187-109112515D2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC5AD58E-DDCE-4CB4-A187-109112515D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC5AD58E-DDCE-4CB4-A187-109112515D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC5AD58E-DDCE-4CB4-A187-109112515D2B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1D87C61-D45F-44E0-AC9C-F5E1893521B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1D87C61-D45F-44E0-AC9C-F5E1893521B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1D87C61-D45F-44E0-AC9C-F5E1893521B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1D87C61-D45F-44E0-AC9C-F5E1893521B7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{10C963F9-CB73-4737-BE7E-72D68C58BFE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{10C963F9-CB73-4737-BE7E-72D68C58BFE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10C963F9-CB73-4737-BE7E-72D68C58BFE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10C963F9-CB73-4737-BE7E-72D68C58BFE4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6B69C78C-80E6-48DB-A6CC-328572B2F8A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6B69C78C-80E6-48DB-A6CC-328572B2F8A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6B69C78C-80E6-48DB-A6CC-328572B2F8A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6B69C78C-80E6-48DB-A6CC-328572B2F8A6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
