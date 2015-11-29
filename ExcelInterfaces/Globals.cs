@@ -87,7 +87,7 @@ namespace ExcelInterfaces
         {
             var privateObject = obj.Clone();
             if (privateObject.GetType().GetInterfaces().Contains(typeof (IPublicObject)))
-                throw new Error("Clone shouldn't be implemented for public objects");
+                throw new Error("Clone seems to have been implemented for " + typeof(T).Name);
             return privateObject;
         }
         [UsedImplicitly]
@@ -116,6 +116,9 @@ namespace ExcelInterfaces
             // find the (string, baseType) constructor
             var argumentTypes = new List<Type> {typeof (string), typeof (T)};
             var constructorInfo = publicType.GetConstructor(argumentTypes.ToArray());
+
+            if (constructorInfo == null)
+                throw new Error("Public from private constructor not implemented for " + publicType.Name);
 
             // and invoke with handle
             var arguments = new List<object> {handle, obj};
