@@ -55,35 +55,38 @@ namespace SFAddin
                 for (var i = 0; i < input.Count; ++i)
                 {
                     arrayArg[i] = Convert.ChangeType(input[i], t);
-                    var str = arrayArg[i] as string;
-                    if (str != null)
-                        arrayArg[i] = RemoveCharacter(str, "\"");
+                    RemoveCharacter(arrayArg[i], "\"");
                 }
                 return arrayArg;
             }
             else
             {
+                RemoveCharacter(input, "\"");
                 dynamic arrayArg = Array.CreateInstance(t, 1);
                 arrayArg[0] = Convert.ChangeType(input, t);
+
                 return arrayArg;
             }
         }
 
-        private static List<object> RemoveQuotes( List<object> list )
+        private static object RemoveCharacter(object input,string character)
         {
-            for (var i = 0; i < list.Count; ++i)
+            var str = input as string;
+            return str?.Replace(character, string.Empty) ?? input;
+        }
+
+        private static List<string> GetArguments(CalcEngine calcEngine, string args)
+        {
+            var allArgs = calcEngine.SplitArgsPreservingQuotedCommas(args).ToList();
+
+            for (var i = 0; i < allArgs.Count; ++i)
             {
-                var x = list[i] as string;
-                if (x != null)
-                    list[i] = RemoveCharacter(x, "\"");
+                var arg = allArgs[i];
+                calcEngine.AdjustRangeArg(ref arg);
+                allArgs[i] = arg;
             }
 
-            return list;
-        } 
-
-        private static string RemoveCharacter(string str,string character)
-        {
-            return str.Replace(character, string.Empty);
+            return allArgs;
         }
 
         private static CalcEngine.LibraryFunction WrapMethod(CalcEngine calcEngine,MethodInfo method)
@@ -97,29 +100,26 @@ namespace SFAddin
 
             Func<string, string> libFunc = args =>
             {
-                var allArgs = calcEngine.SplitArgsPreservingQuotedCommas(args).ToList();
+                var allArgs = GetArguments(calcEngine, args);
                 var ret = "Error";
                 if (allArgs.Count < nonOptionalParameterCount || allArgs.Count > maxParameterCount)
                     return ret;
 
-                var parsedArgs =
-                    allArgs.Select(arg => calcEngine.ComputeIsRef(arg) == "TRUE" ? calcEngine.GetValueFromArg(arg) : arg).ToList();
-
                 var finalArgs = new List<object>();
                 parameters.ForEach(x => finalArgs.Add(Type.Missing) );
 
-                for (var i = 0; i < parsedArgs.Count; ++i)
+                for (var i = 0; i < allArgs.Count; ++i)
                 {
                     try
                     {
                         var paramType = parameters[i].ParameterType;
                         if (paramType.IsArray)
                         {
-                            finalArgs[i] = CreateArray(parsedArgs[i], paramType.GetElementType());
+                            finalArgs[i] = CreateArray(allArgs[i], paramType.GetElementType());
                         }
                         else
                         {
-                            finalArgs[i] = Convert.ChangeType(parsedArgs[i], paramType);
+                            finalArgs[i] = RemoveCharacter(Convert.ChangeType(allArgs[i], paramType),"\"");
                         }
                     }
                     catch (Exception ex)
@@ -128,7 +128,6 @@ namespace SFAddin
                     }
                 }
 
-                finalArgs = RemoveQuotes(finalArgs);
 
                 try
                 {
