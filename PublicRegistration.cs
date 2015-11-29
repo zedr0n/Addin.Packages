@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using ExcelInterfaces;
 using Syncfusion.Calculate;
 
@@ -54,6 +55,9 @@ namespace SFAddin
                 for (var i = 0; i < input.Count; ++i)
                 {
                     arrayArg[i] = Convert.ChangeType(input[i], t);
+                    var str = arrayArg[i] as string;
+                    if (str != null)
+                        arrayArg[i] = RemoveCharacter(str, "\"");
                 }
                 return arrayArg;
             }
@@ -63,6 +67,23 @@ namespace SFAddin
                 arrayArg[0] = Convert.ChangeType(input, t);
                 return arrayArg;
             }
+        }
+
+        private static List<object> RemoveQuotes( List<object> list )
+        {
+            for (var i = 0; i < list.Count; ++i)
+            {
+                var x = list[i] as string;
+                if (x != null)
+                    list[i] = RemoveCharacter(x, "\"");
+            }
+
+            return list;
+        } 
+
+        private static string RemoveCharacter(string str,string character)
+        {
+            return str.Replace(character, string.Empty);
         }
 
         private static CalcEngine.LibraryFunction WrapMethod(CalcEngine calcEngine,MethodInfo method)
@@ -107,6 +128,8 @@ namespace SFAddin
                     }
                 }
 
+                finalArgs = RemoveQuotes(finalArgs);
+
                 try
                 {
                     ret = (string)method.Invoke(null, finalArgs.ToArray());
@@ -125,6 +148,11 @@ namespace SFAddin
         public static IEnumerable<LibraryFunctionEx> WrapAllMethods(CalcEngine calcEngine)
         {
             return FindAllMethods().Select(m => new LibraryFunctionEx() { Name = m.Name, LibraryFunction = WrapMethod(calcEngine,m) } );
-        } 
+        }
+
+        public static void RegisterAllMethods(CalcEngine calcEngine)
+        {
+            WrapAllMethods(calcEngine).ToList().ForEach(x => calcEngine.AddFunction(x.Name,x.LibraryFunction));
+        }
     }
 }
