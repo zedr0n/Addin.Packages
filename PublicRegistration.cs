@@ -53,15 +53,15 @@ namespace SFAddin
                 dynamic arrayArg = Array.CreateInstance(t, input.Count);
                 for (var i = 0; i < input.Count; ++i)
                 {
-                    arrayArg[i] = (dynamic) Convert.ChangeType(input[i], t);
+                    arrayArg[i] = Convert.ChangeType(input[i], t);
                 }
-                return (dynamic) arrayArg;
+                return arrayArg;
             }
             else
             {
                 dynamic arrayArg = Array.CreateInstance(t, 1);
-                arrayArg[0] = (dynamic)Convert.ChangeType(input, t);
-                return (dynamic) arrayArg;
+                arrayArg[0] = Convert.ChangeType(input, t);
+                return arrayArg;
             }
         }
 
@@ -94,7 +94,7 @@ namespace SFAddin
                         var paramType = parameters[i].ParameterType;
                         if (paramType.IsArray)
                         {
-                            finalArgs[i] = (dynamic) CreateArray(parsedArgs[i], paramType.GetElementType());
+                            finalArgs[i] = CreateArray(parsedArgs[i], paramType.GetElementType());
                         }
                         else
                         {
