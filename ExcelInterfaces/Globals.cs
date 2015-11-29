@@ -38,6 +38,8 @@ namespace ExcelInterfaces
 
     public static class PublicObject
     {
+        public static List<Type> AllTypes;
+
         public static T This<T>(string handle) where T : IPublicObject
         {
             T publicObject;
@@ -95,14 +97,20 @@ namespace ExcelInterfaces
             if (o != null)
                 return o.Handle;
 
+            // cache all public types
+            // this only needs to be executed once
+            if (AllTypes == null)
+            {
+                AllTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(x => x.GetCustomAttributes(typeof(PublicAttribute), false).Length > 0)
+                .SelectMany(x => x.GetTypes())
+                .Where(x => x.GetInterfaces().Contains(typeof(IPublicObject)))
+                .ToList();
+            }
+
             // get all possible derived objects
             // should be just the corresponding public type
-            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(x => x.GetCustomAttributes(typeof (PublicAttribute), false).Length > 0)
-                .SelectMany(x => x.GetTypes())
-                .Where(x => x.GetInterfaces().Contains(typeof (IPublicObject)));
-            var publicType = allTypes
-                .Where(t => typeof(T).IsAssignableFrom(t))
+            var publicType = AllTypes.Where(t => typeof(T).IsAssignableFrom(t))
                 .ToArray().Single();
 
             // find the (string, baseType) constructor
@@ -120,8 +128,7 @@ namespace ExcelInterfaces
             {
                 var privateFieldType = fieldInfo.FieldType;
                 // get all public objects derived from the private object field type
-                var publicFieldType = allTypes
-                    .Where(t => t.GetInterfaces().Contains(typeof (IPublicObject)))
+                var publicFieldType = AllTypes.Where(t => t.GetInterfaces().Contains(typeof (IPublicObject)))
                     .Where(t => privateFieldType.IsAssignableFrom(t))
                     .ToArray().SingleOrDefault();
 
