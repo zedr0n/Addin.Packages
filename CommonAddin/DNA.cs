@@ -22,9 +22,7 @@ namespace CommonAddin
     public class ExcelAddin : IExcelAddIn
     {
         public virtual void AutoOpen()
-        {
-            LoadReferences();
-
+        { 
             ExcelIntegration.RegisterUnhandledExceptionHandler(ex =>
             {
                 var errorMessage = ex as Error;
