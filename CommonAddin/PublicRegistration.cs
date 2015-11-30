@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -33,8 +34,21 @@ namespace CommonAddin
 
     public static class PublicRegistration
     {
+        private static void LoadReferences()
+        {
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).Distinct().ToArray();
+
+
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
+            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+        }
+
         private static IEnumerable<MethodInfo> FindAllMethods()
         {
+            LoadReferences();
+
             var allMethods = new List<MethodInfo>();
             // load the Public assemblies
             foreach (var theAssembly in AppDomain.CurrentDomain.GetAssemblies())
