@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using ExcelInterfaces;
 using Syncfusion.Calculate;
 
@@ -55,13 +53,13 @@ namespace SFAddin
                 for (var i = 0; i < input.Length; ++i)
                 {
                     arrayArg[i] = Convert.ChangeType(input[i], t);
-                    RemoveCharacter(arrayArg[i], "\"");
+                    arrayArg[i] = RemoveCharacter(arrayArg[i], "\"");
                 }
                 return arrayArg;
             }
             else
             {
-                RemoveCharacter(input, "\"");
+                input = RemoveCharacter(input, "\"");
                 dynamic arrayArg = Array.CreateInstance(t, 1);
                 arrayArg[0] = Convert.ChangeType(input, t);
 
