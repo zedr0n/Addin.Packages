@@ -49,10 +49,10 @@ namespace SFAddin
 
         private static dynamic CreateArray(dynamic input, Type t)
         {
-            if (input is Array)
+            if (input.GetType().IsArray)
             {
-                dynamic arrayArg = Array.CreateInstance(t, input.Count);
-                for (var i = 0; i < input.Count; ++i)
+                dynamic arrayArg = Array.CreateInstance(t, input.Length);
+                for (var i = 0; i < input.Length; ++i)
                 {
                     arrayArg[i] = Convert.ChangeType(input[i], t);
                     RemoveCharacter(arrayArg[i], "\"");
@@ -75,18 +75,31 @@ namespace SFAddin
             return str?.Replace(character, string.Empty) ?? input;
         }
 
-        private static List<string> GetArguments(CalcEngine calcEngine, string args)
+        private static List<object> GetArguments(CalcEngine calcEngine, string args)
         {
             var allArgs = calcEngine.SplitArgsPreservingQuotedCommas(args).ToList();
+            var finalArgs = new List<object>();
 
             for (var i = 0; i < allArgs.Count; ++i)
             {
                 var arg = allArgs[i];
                 calcEngine.AdjustRangeArg(ref arg);
-                allArgs[i] = arg;
+                if (IsRangeArgument(arg))
+                {
+                    finalArgs.Add((object) GetArguments(calcEngine, string.Join(",", calcEngine.GetCellsFromArgs(arg))).ToArray());
+                }
+                else
+                {
+                    finalArgs.Add(calcEngine.ComputeIsRef(arg) == "TRUE" ? calcEngine.GetValueFromArg(arg) : arg);
+                }
             }
 
-            return allArgs;
+            return finalArgs;
+        }
+
+        private static bool IsRangeArgument(string arg)
+        {
+            return arg.IndexOf(":", StringComparison.Ordinal) > -1;
         }
 
         private static CalcEngine.LibraryFunction WrapMethod(CalcEngine calcEngine,MethodInfo method)
