@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelInterfaces", "ExcelInt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonAddin", "CommonAddin\CommonAddin.csproj", "{DD64BD43-4400-422A-952D-B99E1EBE33E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFAddin", "SFAddin\SFAddin.csproj", "{15A271A4-E25F-403E-8F20-1B38796C6CAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD64BD43-4400-422A-952D-B99E1EBE33E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15A271A4-E25F-403E-8F20-1B38796C6CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15A271A4-E25F-403E-8F20-1B38796C6CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15A271A4-E25F-403E-8F20-1B38796C6CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15A271A4-E25F-403E-8F20-1B38796C6CAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
