@@ -93,6 +93,9 @@ namespace ExcelInterfaces
         [UsedImplicitly]
         public static string ToPublic<T>(this T obj, string handle)
         {
+            // auto-strip the handles
+            handle = Globals.StripHandle(handle);
+
             var o = obj as IPublicObject;
             if (o != null)
                 return o.Handle;
@@ -141,8 +144,11 @@ namespace ExcelInterfaces
                 // find the (string, baseType) constructor
                 argumentTypes = new List<Type> {typeof (string), privateFieldType};
                 constructorInfo = publicFieldType.GetConstructor(argumentTypes.ToArray());
-                // and invoke with handle_${baseType.Name}
-                arguments = new List<object> {handle + "_" + privateFieldType.Name, fieldInfo.GetValue(publicObject)};
+                // and invoke with handle
+                if(privateFieldType != typeof(T))
+                    arguments = new List<object> {handle, fieldInfo.GetValue(publicObject)};
+                else
+                    throw new Error("Recursive object encountered");
                 // store the constructed public object
                 fieldInfo.SetValue(publicObject, constructorInfo?.Invoke(arguments.ToArray()));
             }
@@ -200,6 +206,11 @@ namespace ExcelInterfaces
         private static string TimestampHandle(string handle)
         {
             return handle + "::" + DateTime.Now.ToString("mm:ss.ffff");
+        }
+
+        public static string StripHandle(string handle)
+        {
+            return handle.Split(new char[] {':'}).FirstOrDefault();
         }
     }
 }
