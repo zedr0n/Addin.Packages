@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Reflection.Emit;
 using System.Xml.Serialization;
-
-using JetBrains.Annotations;
 
 namespace ExcelInterfaces
 {
-    public interface IPublicObject : ICloneable
+    public interface IPublicObject
     {
         string Handle { get; set; }
+        string Type { get; set; }
     }
 
     public class Error : ApplicationException
@@ -36,130 +35,95 @@ namespace ExcelInterfaces
         }
     }
 
-    public static class PublicObject
+    public static class ObjectExtensions
     {
-        private static List<Type> _allTypes;
-
-        public static T This<T>(string handle) where T : IPublicObject
+        public static Public<T> ToPublic<T>(this T obj, string handle) where T : class
         {
-            T publicObject;
+            return new Public<T>(handle, obj);
+        }
+    }
+
+    public class Public<T> : IPublicObject
+    {
+        public T Instance;
+        public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>(); 
+
+        public static Public<T> This(string handle)
+        {
+            IPublicObject publicObject;
             if (!Globals.TryGetItem(handle, out publicObject))
                 throw new ObjectMissing(handle);
 
-            return publicObject;
+            return publicObject as Public<T>;
         }
-        public static string WriteToXml2(this IPublicObject obj)
-        {
-            var fieldList = new List<FieldInfo>(obj.GetType().GetFields()
-                .Where(info => info.IsPublic))
-                .Where(info => info.GetValue(obj).GetType().GetInterfaces().Contains(typeof (IPublicObject)))
-                .Where(info => info.FieldType != info.GetValue(obj).GetType());
-            var typesList = fieldList.Select(field => field.GetValue(obj).GetType()).Distinct().ToList();
 
-            var x = new XmlSerializer(obj.GetType(), typesList.ToArray());
+        public static bool TryThis(string handle, out Public<T> obj)
+        {
+            obj = null;
+            try
+            {
+                obj = This(handle);
+                return true;
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+            return false;
+        } 
+
+        public string AddChild<TChild>(TChild obj) where TChild : class
+        {
+            var tHandle = Globals.StripHandle(Handle);
+            var child = obj.ToPublic(tHandle);
+
+            return AddChild(child);
+        }
+
+        public string AddChild<TChild>(Public<TChild> obj) where TChild : class
+        {
+            IPublicObject child;
+            if (!Children.TryGetValue(typeof(TChild), out child))
+                Children.Add(typeof(TChild), obj);
+            child = child ?? obj;
+
+            return child.Handle;
+        }
+
+        public Public(string handle, T obj)
+        {
+            Instance = obj;
+            Type = obj.GetType().Name;
+            Handle = Globals.AddItem(Globals.StripHandle(handle), this);
+        }
+
+        public string Handle { get; set; }
+        public string Type { get; set; }
+
+        public string Serialise()
+        {
+            var x = new XmlSerializer(Instance.GetType());
             var sw = new StringWriter();
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
 
-            x.Serialize(sw, obj, ns);
+            x.Serialize(sw, Instance, ns);
             return sw.ToString();
         }
-        public static string WriteToXml<T>(this T obj) where T : IPublicObject
-        {
-            var privateObject = obj.ToPrivate();
 
-            var x = new XmlSerializer(privateObject.GetType());
-            var sw = new StringWriter();
-            var ns = new XmlSerializerNamespaces();
-            ns.Add("", "");
-
-            x.Serialize(sw, privateObject, ns);
-            return sw.ToString();
-        }
-        [UsedImplicitly]
-        public static T ReadFromXml<T>(string xml)
+        public static Public<T> Deserialise(string handle, string xml)
         {
             var sr = new StringReader(xml);
-            var x = new XmlSerializer(typeof (T));
-            return (T) x.Deserialize(sr);
-        }
-        private static object ToPrivate<T>(this T obj) where T : IPublicObject
-        {
-            var privateObject = obj.Clone();
-            if (privateObject.GetType().GetInterfaces().Contains(typeof (IPublicObject)))
-                throw new Error("Clone seems to have been implemented for " + typeof(T).Name);
-            return privateObject;
-        }
-        [UsedImplicitly]
-        public static string ToPublic<T>(this T obj, string handle)
-        {
-            // auto-strip the handles
-            handle = Globals.StripHandle(handle);
+            var x = new XmlSerializer(typeof(T));
+            var obj = (T)x.Deserialize(sr);
 
-            var o = obj as IPublicObject;
-            if (o != null)
-                return o.Handle;
-
-            // cache all public types
-            // this only needs to be executed once
-            if (_allTypes == null)
-            {
-                _allTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(x => x.GetCustomAttributes(typeof(PublicAttribute), false).Length > 0)
-                .SelectMany(x => x.GetTypes())
-                .Where(x => x.GetInterfaces().Contains(typeof(IPublicObject)))
-                .ToList();
-            }
-
-            // get all possible derived objects
-            // should be just the corresponding public type
-            var publicType = _allTypes.Where(t => typeof(T).IsAssignableFrom(t))
-                .ToArray().Single();
-
-            // find the (string, baseType) constructor
-            var argumentTypes = new List<Type> {typeof (string), typeof (T)};
-            var constructorInfo = publicType.GetConstructor(argumentTypes.ToArray());
-
-            if (constructorInfo == null)
-                throw new Error("Public from private constructor not implemented for " + publicType.Name);
-
-            // and invoke with handle
-            var arguments = new List<object> {handle, obj};
-            var publicObject = (IPublicObject) constructorInfo?.Invoke(arguments.ToArray());
-
-            // enumerate all fields
-            var fieldList = new List<FieldInfo>(typeof (T).GetFields()
-                .Where(info => info.IsPublic));
-            foreach (var fieldInfo in fieldList)
-            {
-                var privateFieldType = fieldInfo.FieldType;
-                // get all public objects derived from the private object field type
-                var publicFieldType = _allTypes.Where(t => t.GetInterfaces().Contains(typeof (IPublicObject)))
-                    .Where(t => privateFieldType.IsAssignableFrom(t))
-                    .ToArray().SingleOrDefault();
-
-                if (publicFieldType == default(Type))
-                    continue;
-
-                // find the (string, baseType) constructor
-                argumentTypes = new List<Type> {typeof (string), privateFieldType};
-                constructorInfo = publicFieldType.GetConstructor(argumentTypes.ToArray());
-                // and invoke with handle
-                if(privateFieldType != typeof(T))
-                    arguments = new List<object> {handle, fieldInfo.GetValue(publicObject)};
-                else
-                    throw new Error("Recursive object encountered");
-                // store the constructed public object
-                fieldInfo.SetValue(publicObject, constructorInfo?.Invoke(arguments.ToArray()));
-            }
-
-            return publicObject?.Handle;
+            return new Public<T>(handle, obj);
         }
     }
 
     public static class Globals
     {
-        private static readonly Dictionary<string, object> Items = new Dictionary<string, object>();
+        private static readonly Dictionary<string, IPublicObject> Items = new Dictionary<string, IPublicObject>();
 
         private static bool TryGetTypedValue<TKey, TValue, TActual>(
             this IDictionary<TKey, TValue> data,
@@ -175,37 +139,28 @@ namespace ExcelInterfaces
             value = default(TActual);
             return false;
         }
-        public static string AddItem(string handle, object obj)
+        public static string AddItem(string handle, IPublicObject obj)
         {
-            var tHandle = TimestampHandle(handle) + "::" + obj.GetType().Name + "::";
+            var tHandle = TimestampHandle(handle + "::" + obj.Type) + "::";
             if (!Items.ContainsKey(tHandle))
                 Items.Add(tHandle,obj);
 
-            return tHandle;
-        }
-        public static string AddItem(string handle, IPublicObject obj)
-        {
-            var tHandle = TimestampHandle(handle) + "::" + obj.GetType().BaseType?.Name + "::";
-            if (!Items.ContainsKey(tHandle))
-                Items.Add(tHandle, obj);
-
-            // store timestamped handle
             obj.Handle = tHandle;
 
             return tHandle;
         }
-        public static object GetItem(string handle)
+        public static IPublicObject GetItem(string handle)
         {
-            object obj;
+            IPublicObject obj;
             return TryGetItem(handle, out obj) ? obj : null;
         }
-        public static bool TryGetItem<TValue>(string handle,out TValue obj)
+        public static bool TryGetItem<TValue>(string handle,out TValue obj) where TValue : IPublicObject
         {
             return Items.TryGetTypedValue(handle, out obj);
         }
         private static string TimestampHandle(string handle)
         {
-            return handle + "::" + DateTime.Now.ToString("mm:ss.ffff");
+            return handle + "::" + DateTime.Now.ToString("hh:mm:ss");
         }
 
         public static string StripHandle(string handle)
