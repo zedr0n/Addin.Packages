@@ -43,7 +43,7 @@ namespace ExcelInterfaces
         }
     }
 
-    public class Public<T> : IPublicObject
+    public class Public<T> : IPublicObject, IEquatable<Public<T>> where T : class
     {
         public T Instance;
         public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>(); 
@@ -118,6 +118,15 @@ namespace ExcelInterfaces
             var obj = (T)x.Deserialize(sr);
 
             return new Public<T>(handle, obj);
+        }
+
+        public bool Equals(Public<T> other)
+        {
+            var equatable = Instance as IEquatable<T>;
+            if(equatable != null)
+                return equatable.Equals(other.Instance);
+
+            return Instance.Equals(other.Instance);
         }
     }
 
