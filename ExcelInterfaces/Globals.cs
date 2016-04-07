@@ -134,6 +134,11 @@ namespace ExcelInterfaces
     {
         private static readonly Dictionary<string, IPublicObject> Items = new Dictionary<string, IPublicObject>();
 
+        public static void Reset()
+        {
+            Items.Clear();
+        }
+
         private static bool TryGetTypedValue<TKey, TValue, TActual>(
             this IDictionary<TKey, TValue> data,
             TKey key,
