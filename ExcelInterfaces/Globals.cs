@@ -11,6 +11,7 @@ namespace ExcelInterfaces
     {
         string Handle { get; set; }
         string Type { get; set; }
+        object Object { get; }
     }
 
     public class Error : ApplicationException
@@ -45,8 +46,9 @@ namespace ExcelInterfaces
 
     public class Public<T> : IPublicObject, IEquatable<Public<T>> where T : class
     {
-        public T Instance;
-        public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>(); 
+        public T Instance { get; }
+        public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>();
+        public virtual object Object => Instance;
 
         public static Public<T> This(string handle)
         {
@@ -54,7 +56,11 @@ namespace ExcelInterfaces
             if (!Globals.TryGetItem(handle, out publicObject))
                 throw new ObjectMissing(handle);
 
-            return publicObject as Public<T>;
+            var instance = publicObject.GetType().GetProperty(nameof(Instance)).GetValue(publicObject);
+
+            var obj =  new Public<T>(handle, instance as T);
+            Globals.SetItem(handle,obj);
+            return obj;
         }
 
         public static bool TryThis(string handle, out Public<T> obj)
@@ -168,6 +174,15 @@ namespace ExcelInterfaces
             IPublicObject obj;
             return TryGetItem(handle, out obj) ? obj : null;
         }
+
+        public static void SetItem(string handle, IPublicObject obj)
+        {
+            if (Items.ContainsKey(handle))
+                Items[handle] = obj;
+            else
+                throw new ArgumentException();
+        }
+
         public static bool TryGetItem<TValue>(string handle,out TValue obj) where TValue : IPublicObject
         {
             return Items.TryGetTypedValue(handle, out obj);
