@@ -44,13 +44,53 @@ namespace ExcelInterfaces
         }
     }
 
-    public class Public<T> : IPublicObject, IEquatable<Public<T>> where T : class
+    public class Public : IPublicObject
+    {
+        public string Handle { get; set; }
+        public string Type { get; set; }
+        public virtual object Object { get; } = null;
+
+        public static IPublicObject This(string handle)
+        {
+            IPublicObject publicObject;
+            if (!Globals.TryGetItem(handle, out publicObject))
+                throw new ObjectMissing(handle);
+
+            return publicObject;
+        }
+
+        public static string Serialise(string handle)
+        {
+            var oObj = This(handle);
+
+            var x = new XmlSerializer(oObj.Object.GetType());
+            var sw = new StringWriter();
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+
+            x.Serialize(sw, oObj.Object, ns);
+            return sw.ToString();
+        }
+
+        public string Serialise()
+        {
+            var x = new XmlSerializer(Object.GetType());
+            var sw = new StringWriter();
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+
+            x.Serialize(sw, Object, ns);
+            return sw.ToString();
+        }
+    }
+
+    public class Public<T> : Public, IEquatable<Public<T>> where T : class
     {
         public T Instance { get; }
         public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>();
-        public virtual object Object => Instance;
+        public override object Object => Instance;
 
-        public static Public<T> This(string handle)
+        public new static Public<T> This(string handle)
         {
             IPublicObject publicObject;
             if (!Globals.TryGetItem(handle, out publicObject))
@@ -101,20 +141,6 @@ namespace ExcelInterfaces
             Instance = obj;
             Type = obj.GetType().Name;
             Handle = Globals.AddItem(Globals.StripHandle(handle), this);
-        }
-
-        public string Handle { get; set; }
-        public string Type { get; set; }
-
-        public string Serialise()
-        {
-            var x = new XmlSerializer(Instance.GetType());
-            var sw = new StringWriter();
-            var ns = new XmlSerializerNamespaces();
-            ns.Add("", "");
-
-            x.Serialize(sw, Instance, ns);
-            return sw.ToString();
         }
 
         public static Public<T> Deserialise(string handle, string xml)
