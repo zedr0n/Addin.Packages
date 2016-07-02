@@ -97,7 +97,7 @@ namespace ExcelInterfaces
             if (!Globals.TryGetItem(handle, out publicObject))
                 throw new ObjectMissing(handle);
 
-            var instance = publicObject.GetType().GetProperty(nameof(Instance)).GetValue(publicObject);
+            var instance = publicObject.GetType().GetRuntimeProperty(nameof(Instance)).GetValue(publicObject);
 
             var obj =  new Public<T>(handle, instance as T);
             Globals.SetItem(handle,obj);
