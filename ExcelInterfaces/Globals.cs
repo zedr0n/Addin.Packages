@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml.Serialization;
 
@@ -14,7 +15,7 @@ namespace ExcelInterfaces
         object Object { get; }
     }
 
-    public class Error : ApplicationException
+    public class Error : Exception
     {
         public Error(string message) :
             base(message)
@@ -187,7 +188,7 @@ namespace ExcelInterfaces
         }
         public static string AddItem(string handle, IPublicObject obj)
         {
-            var tHandle = TimestampHandle(handle + "::" + obj.Type) + "::";
+            var tHandle = TimestampHandle(handle + "::" + obj.Type);
             if (!Items.ContainsKey(tHandle))
                 Items.Add(tHandle,obj);
 
@@ -215,7 +216,7 @@ namespace ExcelInterfaces
         }
         private static string TimestampHandle(string handle)
         {
-            return handle + "::" + DateTime.Now.ToString("hh:mm:ss");
+            return handle + "::" + DateTime.Now.ToString("hh:mm:ss.ff");
         }
 
         public static string StripHandle(string handle)

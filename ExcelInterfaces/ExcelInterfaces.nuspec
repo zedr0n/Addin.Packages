@@ -16,6 +16,6 @@
     <tags>Tag1 Tag2</tags>
   </metadata>
   <files>
-    <file src="bin\$configuration$\$id$.pdb" target="lib\net45"/>
+    <file src="bin\$configuration$\$id$.*" target="lib\dotnet"/>
   </files>
 </package>
