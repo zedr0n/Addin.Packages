@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Xml.Serialization;
 
 namespace ExcelInterfaces
@@ -64,7 +63,7 @@ namespace ExcelInterfaces
         {
             var oObj = This(handle);
 
-            var x = new XmlSerializer(oObj.Object.GetType());
+            var x = new XmlSerializer((Type) oObj.Object.GetType());
             var sw = new StringWriter();
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
@@ -165,7 +164,10 @@ namespace ExcelInterfaces
 
     public static class Globals
     {
-        private static readonly Dictionary<string, IPublicObject> Items = new Dictionary<string, IPublicObject>();
+        [ThreadStatic]
+        private static Dictionary<string, IPublicObject> _items;
+
+        private static Dictionary<string, IPublicObject> Items => _items ?? (_items = new Dictionary<string, IPublicObject>());
 
         public static void Reset()
         {
@@ -201,7 +203,6 @@ namespace ExcelInterfaces
             IPublicObject obj;
             return TryGetItem(handle, out obj) ? obj : null;
         }
-
         public static void SetItem(string handle, IPublicObject obj)
         {
             if (Items.ContainsKey(handle))
