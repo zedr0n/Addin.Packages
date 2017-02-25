@@ -6,6 +6,7 @@ using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 using ExcelInterfaces;
+using SimpleInjector;
 
 namespace CommonAddin
 {
@@ -21,6 +22,8 @@ namespace CommonAddin
 
     public class ExcelAddin : IExcelAddIn
     {
+        public Container Container { get; set; }
+
         public virtual void AutoOpen()
         { 
             ExcelIntegration.RegisterUnhandledExceptionHandler(ex =>
@@ -43,7 +46,7 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            PublicRegistration.GetAllRegistrations()
+            PublicRegistration.GetAllRegistrations(Container)
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessParamsRegistrations()
                 .RegisterFunctions();

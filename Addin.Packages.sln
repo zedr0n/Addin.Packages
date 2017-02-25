@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFAddin", "SFAddin\SFAddin.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelInterfaces", "ExcelInterfaces\ExcelInterfaces.csproj", "{251BDA20-C404-4221-A8FC-61B693E0532A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoC", "IoC\IoC.csproj", "{E36A7525-565A-435F-8723-DC39674CEEA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,18 @@ Global
 		{251BDA20-C404-4221-A8FC-61B693E0532A}.Release|x64.Build.0 = Release|x64
 		{251BDA20-C404-4221-A8FC-61B693E0532A}.Release|x86.ActiveCfg = Release|x86
 		{251BDA20-C404-4221-A8FC-61B693E0532A}.Release|x86.Build.0 = Release|x86
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|x64.ActiveCfg = Debug|x64
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|x64.Build.0 = Debug|x64
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|x86.ActiveCfg = Debug|x86
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Debug|x86.Build.0 = Debug|x86
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|x64.ActiveCfg = Release|x64
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|x64.Build.0 = Release|x64
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|x86.ActiveCfg = Release|x86
+		{E36A7525-565A-435F-8723-DC39674CEEA8}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

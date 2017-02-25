@@ -6,8 +6,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
+using IoC;
 
 using ExcelInterfaces;
+using SimpleInjector;
 
 namespace CommonAddin
 {
@@ -64,24 +66,37 @@ namespace CommonAddin
             return allMethods;
         }
 
-        private static LambdaExpression WrapMethod(MethodInfo method)
+        private static LambdaExpression WrapMethod(MethodInfo method,Container container)
         {
             if (method.DeclaringType == null)
                 return null;
 
-            var callParams = method.GetParameters().Select(p => Expression.Parameter(p.ParameterType, p.Name)).ToList();
-            var callExpr = Expression.Call(method, callParams);
+            var callParams =
+                method.GetParameters()
+                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
+                    .Select(p => Expression.Parameter(p.ParameterType, p.Name));
+
+            var allParams = method.GetParameters().Select<ParameterInfo,Expression>(
+                p =>
+                {
+                    if (p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
+                        return Expression.Constant(container.GetInstance(p.ParameterType));
+                    else
+                        return Expression.Parameter(p.ParameterType, p.Name);
+                }).ToList();
+
+            var callExpr = Expression.Call(method, allParams);
 
             return Expression.Lambda(callExpr, method.Name, callParams);
         }
 
         // register all functions with IExcel attributes
-        public static IEnumerable<ExcelFunctionRegistration> GetAllRegistrations()
+        public static IEnumerable<ExcelFunctionRegistration> GetAllRegistrations(Container container)
         {
             var registrationList = new List<ExcelFunctionRegistration>();
             foreach (var methodInfo in FindAllMethods())
             {
-                var lambda = WrapMethod(methodInfo);
+                var lambda = WrapMethod(methodInfo,container);
                 var attribute = (IExcelFunctionAttribute) methodInfo.GetCustomAttributes(typeof (IExcelFunctionAttribute)).Single();
                 registrationList.Add(new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(methodInfo.Name),methodInfo.GetParameters().Select(p => new ExcelParameterRegistration(p))));
             }

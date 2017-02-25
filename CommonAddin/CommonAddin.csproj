@@ -41,6 +41,9 @@
       <HintPath>..\packages\NodaTime.1.3.2\lib\net35-Client\NodaTime.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SimpleInjector, Version=3.2.1.0, Culture=neutral, PublicKeyToken=fa8a96335684b6f3, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleInjector.3.2.1-hash\lib\net45\SimpleInjector.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -64,6 +67,10 @@
     <ProjectReference Include="..\ExcelInterfaces\ExcelInterfaces.csproj">
       <Project>{251bda20-c404-4221-a8fc-61b693e0532a}</Project>
       <Name>ExcelInterfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IoC\IoC.csproj">
+      <Project>{e36a7525-565a-435f-8723-dc39674ceea8}</Project>
+      <Name>IoC</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
