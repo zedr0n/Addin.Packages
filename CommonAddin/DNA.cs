@@ -23,6 +23,7 @@ namespace CommonAddin
     public class ExcelAddin : IExcelAddIn
     {
         public Container Container { get; set; }
+        public IEnumerable<MethodInfo> Methods { get; set; }
 
         public virtual void AutoOpen()
         { 
@@ -46,7 +47,9 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            PublicRegistration.GetAllRegistrations(Container)
+            var registration = new Registration(Container,Methods);
+
+            registration.GetAllRegistrations()
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessParamsRegistrations()
                 .RegisterFunctions();

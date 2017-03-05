@@ -34,56 +34,33 @@ namespace CommonAddin
         }
     }
 
-    public static class PublicRegistration
+    public class Registration
     {
-        private static void LoadReferences()
+        private readonly Container _container;
+        private readonly IEnumerable<MethodInfo> _methods;
+
+        public Registration(Container container, IEnumerable<MethodInfo> methods)
         {
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).Distinct().ToArray();
-
-
-            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
-            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
-            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+            _container = container;
+            _methods = methods;
         }
 
-        private static IEnumerable<MethodInfo> FindAllMethods()
-        {
-            LoadReferences();
-
-            var allMethods = new List<MethodInfo>();
-            // load the Public assemblies
-            foreach (var theAssembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (theAssembly.GetCustomAttributes(typeof (PublicAttribute), false).Length == 0)
-                    continue; 
-
-                allMethods.AddRange(theAssembly.GetTypes()
-                    .SelectMany(t => t.GetMethods())
-                    .Where(m => m.GetCustomAttributes(typeof(IExcelFunctionAttribute), false).Length > 0));
-            }
-
-            return allMethods;
-        }
-
-        private static LambdaExpression WrapMethod(MethodInfo method,Container container)
+        private LambdaExpression WrapMethod(MethodInfo method)
         {
             if (method.DeclaringType == null)
                 return null;
 
-            var callParams =
-                method.GetParameters()
-                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
-                    .Select(p => Expression.Parameter(p.ParameterType, p.Name));
-
-            var allParams = method.GetParameters().Select<ParameterInfo,Expression>(
+            var allParams = method.GetParameters().Select<ParameterInfo, Expression>(
                 p =>
                 {
                     if (p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
-                        return Expression.Constant(container.GetInstance(p.ParameterType));
-                    else
-                        return Expression.Parameter(p.ParameterType, p.Name);
+                        return Expression.Constant(_container.GetInstance(p.ParameterType));
+                    return Expression.Parameter(p.ParameterType, p.Name);
                 }).ToList();
+
+            var callParams = allParams.Where(p => p.NodeType == ExpressionType.Parameter)
+                .Select(e => e as ParameterExpression)
+                .ToArray();
 
             var callExpr = Expression.Call(method, allParams);
 
@@ -91,16 +68,19 @@ namespace CommonAddin
         }
 
         // register all functions with IExcel attributes
-        public static IEnumerable<ExcelFunctionRegistration> GetAllRegistrations(Container container)
+        public IEnumerable<ExcelFunctionRegistration> GetAllRegistrations()
         {
             var registrationList = new List<ExcelFunctionRegistration>();
-            foreach (var methodInfo in FindAllMethods())
+            foreach (var methodInfo in _methods)
             {
-                var lambda = WrapMethod(methodInfo,container);
-                var attribute = (IExcelFunctionAttribute) methodInfo.GetCustomAttributes(typeof (IExcelFunctionAttribute)).Single();
-                registrationList.Add(new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(methodInfo.Name),methodInfo.GetParameters().Select(p => new ExcelParameterRegistration(p))));
+                var lambda = WrapMethod(methodInfo);
+                var attribute = (IExcelFunctionAttribute)methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
+                registrationList.Add(new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(methodInfo.Name), methodInfo.GetParameters()
+                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
+                    .Select(p => new ExcelParameterRegistration(p))));
             }
             return registrationList;
         }
+
     }
 }

@@ -42,7 +42,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SimpleInjector, Version=3.2.1.0, Culture=neutral, PublicKeyToken=fa8a96335684b6f3, processorArchitecture=MSIL">
-      <HintPath>..\packages\SimpleInjector.3.2.1-hash\lib\net45\SimpleInjector.dll</HintPath>
+      <HintPath>..\packages\SimpleInjector.3.2.1-hash2\lib\net45\SimpleInjector.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
