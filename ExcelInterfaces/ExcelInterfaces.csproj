@@ -5,6 +5,8 @@
     <Version>1.5.4</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Local|AnyCPU'" />
+
   <ItemGroup>
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
@@ -16,6 +18,4 @@
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <PackageReference Include="IoC" Version="1.0.0" />
   </ItemGroup>
-
-
 </Project>
