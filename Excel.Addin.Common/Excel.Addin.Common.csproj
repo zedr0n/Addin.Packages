@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <Version>1.5.4</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Local|AnyCPU'" />
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug Local'">
+    <ProjectReference Include="..\ExcelInterfaces\ExcelInterfaces.csproj" />
+    <ProjectReference Include="..\IoC\IoC.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="IoC" Version="1.0.0" />
+    <PackageReference Include="ExcelInterfaces" Version="1.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDna.AddIn" Version="0.33.9" />
+    <PackageReference Include="ExcelDna.Registration" Version="0.33.9" />
+    <PackageReference Include="SimpleInjector" Version="3.2.1-hash6d" />
+  </ItemGroup>
+
+</Project>

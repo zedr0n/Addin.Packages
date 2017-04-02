@@ -9,8 +9,13 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug Local'">
     <ProjectReference Include="..\IoC\IoC.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="IoC" Version="1.0.0" />
+  </ItemGroup>
+
 
 </Project>
