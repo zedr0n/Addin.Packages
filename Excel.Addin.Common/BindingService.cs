@@ -15,7 +15,7 @@ namespace CommonAddin
 
         public void AddBinding<T,TProperty>(string cell, T obj, Expression<Func<T, TProperty>> memberLambda) where T : class
         {
-            _bindings.Add(cell,new Binding<T,TProperty>(cell,obj,memberLambda));
+            _bindings[cell] = new Binding<T, TProperty>(cell, obj, memberLambda);
         }
 
         public void OnValueChanged(string cell, object value)
