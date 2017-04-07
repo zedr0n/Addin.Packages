@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="ExcelDna.AddIn" Version="0.33.9" />
     <PackageReference Include="ExcelDna.Registration" Version="0.33.9" />
+    <PackageReference Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1000" />
     <PackageReference Include="SimpleInjector" Version="3.2.1-hash6d" />
   </ItemGroup>
 

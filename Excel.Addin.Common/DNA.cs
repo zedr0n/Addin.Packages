@@ -7,6 +7,7 @@ using ExcelDna.Integration;
 using ExcelDna.Registration;
 using ExcelInterfaces;
 using SimpleInjector;
+using Application = Microsoft.Office.Interop.Excel.Application;
 
 namespace CommonAddin
 {
@@ -48,6 +49,9 @@ namespace CommonAddin
                              .RegisterFunctions();
 
             var registration = new Registration(Container,Methods);
+            var bindingService = Container.GetInstance<IBindingService>();
+            var application = (Application)ExcelDnaUtil.Application;
+            application.SheetChange += bindingService.OnSheetChange;
 
             registration.GetAllRegistrations()
                 .ProcessParameterConversions(conversionConfig)

@@ -55,6 +55,20 @@ namespace CommonAddin
                 {
                     if (p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
                         return Expression.Constant(_container.GetInstance(p.ParameterType));
+                    if (p.ParameterType == typeof(Func<string>))
+                        return Expression.Constant( (Func<string>) (() =>
+                        {
+                            var reference = XlCall.Excel(XlCall.xlfCaller) as ExcelReference;
+                            if (reference == null)
+                                return null;
+                            var cellReference = (string)XlCall.Excel(XlCall.xlfAddress, 1 + reference.RowFirst,
+                                1 + reference.ColumnFirst);
+
+                            var sheetName = (string)XlCall.Excel(XlCall.xlSheetNm,
+                                reference);
+                            cellReference = sheetName + cellReference;
+                            return cellReference;
+                        }));
                     return Expression.Parameter(p.ParameterType, p.Name);
                 }).ToList();
 
@@ -76,7 +90,7 @@ namespace CommonAddin
                 var lambda = WrapMethod(methodInfo);
                 var attribute = (IExcelFunctionAttribute)methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
                 registrationList.Add(new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(methodInfo.Name), methodInfo.GetParameters()
-                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
+                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)) && p.ParameterType != typeof(Func<string>))
                     .Select(p => new ExcelParameterRegistration(p))));
             }
             return registrationList;
