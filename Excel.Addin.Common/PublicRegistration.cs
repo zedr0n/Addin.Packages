@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -45,6 +46,28 @@ namespace CommonAddin
             _methods = methods;
         }
 
+        private LambdaExpression ConvertToStatic(MethodInfo method, List<ParameterExpression> arguments)
+        {
+            Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
+
+            Expression<Func<string, IPublicObject>> expr = h => Public.This(h);
+
+            var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
+            var handleParam = Expression.Parameter(typeof(string), "handle");
+
+            var block = Expression.Block(
+                new[] {instanceParam},
+                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(expr, handleParam),method.DeclaringType)),
+                Expression.Call(instanceParam, method, arguments)
+            );
+
+            var allArguments = new List<ParameterExpression>(arguments);
+            allArguments.Insert(0, handleParam);
+
+            var callExpr = Expression.Lambda(block, allArguments);
+            return callExpr;
+        }
+
         private LambdaExpression WrapMethod(MethodInfo method)
         {
             if (method.DeclaringType == null)
@@ -73,11 +96,12 @@ namespace CommonAddin
                 }).ToList();
 
             var callParams = allParams.Where(p => p.NodeType == ExpressionType.Parameter)
-                .Select(e => e as ParameterExpression)
-                .ToArray();
+                .Select(e => e as ParameterExpression).ToList();
+
+            if (!method.IsStatic)
+                return ConvertToStatic(method, callParams);
 
             var callExpr = Expression.Call(method, allParams);
-
             return Expression.Lambda(callExpr, method.Name, callParams);
         }
 
@@ -89,9 +113,25 @@ namespace CommonAddin
             {
                 var lambda = WrapMethod(methodInfo);
                 var attribute = (IExcelFunctionAttribute)methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
-                registrationList.Add(new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(methodInfo.Name), methodInfo.GetParameters()
-                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)) && p.ParameterType != typeof(Func<string>))
-                    .Select(p => new ExcelParameterRegistration(p))));
+                var parameters = methodInfo.GetParameters()
+                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)) &&
+                                p.ParameterType != typeof(Func<string>))
+                    .Select(p => new ExcelParameterRegistration(p)).ToList();
+                var name = methodInfo.Name;
+                if (!methodInfo.IsStatic)
+                {
+                    parameters.Insert(0, new ExcelParameterRegistration(
+                        new ExcelArgumentAttribute()
+                        {
+                            AllowReference = true,
+                            Description = "Object handle",
+                            Name = "Handle"
+                        }));
+                    name = methodInfo.DeclaringType?.Name + "." + name;
+                }
+
+                var registration = new ExcelFunctionRegistration(lambda,attribute.ToExcelFunctionAttribute(name), parameters);
+                registrationList.Add(registration);
             }
             return registrationList;
         }

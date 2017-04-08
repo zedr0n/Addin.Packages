@@ -98,9 +98,9 @@ namespace ExcelInterfaces
 
             var instance = publicObject.GetType().GetRuntimeProperty(nameof(Instance)).GetValue(publicObject);
 
-            var obj =  new Public<T>(handle, instance as T);
-            Globals.SetItem(handle,obj);
-            return obj;
+            //var obj =  new Public<T>(handle, instance as T);
+            //Globals.SetItem(handle,obj);
+            return publicObject as Public<T>;
         }
 
         public static bool TryThis(string handle, out Public<T> obj)
