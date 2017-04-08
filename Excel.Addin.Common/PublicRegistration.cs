@@ -39,18 +39,20 @@ namespace CommonAddin
     {
         private readonly Container _container;
         private readonly IEnumerable<MethodInfo> _methods;
+        private readonly Func<Container, string, IPublicObject> _factory;
 
-        public Registration(Container container, IEnumerable<MethodInfo> methods)
+        public Registration(Container container, IEnumerable<MethodInfo> methods, Func<Container, string, IPublicObject> factory )
         {
             _container = container;
             _methods = methods;
+            _factory = factory;
         }
 
         private LambdaExpression ConvertToStatic(MethodInfo method, List<ParameterExpression> arguments)
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
-            Expression<Func<string, IPublicObject>> expr = h => Public.This(h);
+            Expression<Func<string, IPublicObject>> expr = h => _factory(_container, h); //h => Public.This(h);
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");

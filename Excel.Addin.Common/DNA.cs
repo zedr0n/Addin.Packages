@@ -25,6 +25,7 @@ namespace CommonAddin
     {
         public Container Container { get; set; }
         public IEnumerable<MethodInfo> Methods { get; set; }
+        public Func<Container,string,IPublicObject> Factory { get; set; }
 
         public virtual void AutoOpen()
         { 
@@ -48,7 +49,7 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            var registration = new Registration(Container,Methods);
+            var registration = new Registration(Container,Methods,Factory);
             var bindingService = Container.GetInstance<IBindingService>();
             var application = (Application)ExcelDnaUtil.Application;
             application.SheetChange += bindingService.OnSheetChange;

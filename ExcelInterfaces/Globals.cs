@@ -143,6 +143,8 @@ namespace ExcelInterfaces
             Handle = Globals.AddItem(Globals.StripHandle(handle), this);
         }
 
+        public Public() { }
+
         public static Public<T> Deserialise(string handle, string xml)
         {
             var sr = new StringReader(xml);
