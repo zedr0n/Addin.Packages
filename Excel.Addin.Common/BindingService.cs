@@ -45,28 +45,28 @@ namespace CommonAddin
     public class Binding<T,TProperty> : Binding where T : class
     {
         // cell reference
-        public string Cell;
+        private string _cell;
         // associated object 
-        public T Object;
+        private T _object;
         // function which is associated with the object action cell
-        public Action<TProperty> Property;
+        private readonly Action<TProperty> _property;
 
         public override void Set(object value)
         {
-            Property((TProperty) value);
+            _property((TProperty) value);
         }
 
         public Binding(string cell, T obj, Expression<Func<T, TProperty>> memberLamda)
         {
-            Cell = cell;
-            Object = obj;
+            _cell = cell;
+            _object = obj;
 
             var memberSelectorExpression = memberLamda.Body as MemberExpression;
             if (memberSelectorExpression != null)
             {
                 var property = memberSelectorExpression.Member as PropertyInfo;
                 if (property != null)
-                    Property = value => property.SetValue(obj, value, null);
+                    _property = value => property.SetValue(obj, value, null);
             }
         }
     }
