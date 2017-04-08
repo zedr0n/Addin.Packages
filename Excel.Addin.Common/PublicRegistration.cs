@@ -48,7 +48,7 @@ namespace CommonAddin
             _factory = factory;
         }
 
-        private LambdaExpression ConvertToStatic(MethodInfo method, List<ParameterExpression> arguments)
+        private LambdaExpression ConvertToStatic(MethodInfo method, List<Expression> arguments, List<ParameterExpression> callArguments)
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
@@ -63,7 +63,7 @@ namespace CommonAddin
                 Expression.Call(instanceParam, method, arguments)
             );
 
-            var allArguments = new List<ParameterExpression>(arguments);
+            var allArguments = new List<ParameterExpression>(callArguments);
             allArguments.Insert(0, handleParam);
 
             var callExpr = Expression.Lambda(block, allArguments);
@@ -101,7 +101,7 @@ namespace CommonAddin
                 .Select(e => e as ParameterExpression).ToList();
 
             if (!method.IsStatic)
-                return ConvertToStatic(method, callParams);
+                return ConvertToStatic(method, allParams,callParams);
 
             var callExpr = Expression.Call(method, allParams);
             return Expression.Lambda(callExpr, method.Name, callParams);
@@ -129,7 +129,10 @@ namespace CommonAddin
                             Description = "Object handle",
                             Name = "Handle"
                         }));
-                    name = methodInfo.DeclaringType?.Name + "." + name;
+                    if (!methodInfo.DeclaringType.IsGenericType)
+                        name = methodInfo.DeclaringType?.Name + "." + name;
+                    else
+                        name = methodInfo.DeclaringType.GenericTypeArguments.First().Name + "." + name;
                 }
 
                 var registration = new ExcelFunctionRegistration(lambda,attribute.ToExcelFunctionAttribute(name), parameters);
