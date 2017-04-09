@@ -47,7 +47,7 @@ namespace CommonAddin
         /// <summary>
         /// Expression to create public object from handle
         /// </summary>
-        private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Create(h);
+        private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Get(h);
 
         public Registration(Container container, IEnumerable<MethodInfo> methods)
         {

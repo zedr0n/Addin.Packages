@@ -4,6 +4,6 @@ namespace ExcelInterfaces
 {
     public interface ICreator : IInjectable
     {
-        IPublicObject Create(string handle);
+        IPublicObject Get(string handle);
     }
 }

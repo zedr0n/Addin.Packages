@@ -92,7 +92,7 @@ namespace CommonAddin
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToInt32).ToArray())
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
                 // #ParameterConversion Convert handle to public object
-                .AddParameterConversion((object obj) => creator.Create((string) obj))
+                .AddParameterConversion((object obj) => creator.Get((string) obj))
                 //.AddParameterConversion((string handle) => handle.Contains("::") ? Container.GetInstance<ICreator>().Create(handle) : handle )
                 //.AddParameterConversion((Type type, ExcelParameterRegistration paramReg) =>
                 //    (Expression<Func<object, IPublicObject>>)(obj => creator.Create((string)obj)), typeof(IPublicObject))
