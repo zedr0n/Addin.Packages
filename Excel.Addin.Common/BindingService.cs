@@ -26,6 +26,11 @@ namespace CommonAddin
             binding.Value?.Set(value);
         }
 
+        /// <summary>
+        /// Syncs the property values for the object bound to changed cell
+        /// </summary>
+        /// <param name="sheet"></param>
+        /// <param name="target"></param>
         public void OnSheetChange(object sheet, object target)
         {
             var range = target as Microsoft.Office.Interop.Excel.Range;

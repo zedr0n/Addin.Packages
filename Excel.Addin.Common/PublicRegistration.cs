@@ -39,27 +39,43 @@ namespace CommonAddin
     {
         private readonly Container _container;
         private readonly IEnumerable<MethodInfo> _methods;
-        private readonly Func<Container, string, IPublicObject> _factory;
 
-        public Registration(Container container, IEnumerable<MethodInfo> methods, Func<Container, string, IPublicObject> factory )
+        /// <summary>
+        ///     Creates Public object from handle using container to resolve dependencies
+        /// </summary>
+        private readonly ICreator _creator;
+        /// <summary>
+        /// Expression to create public object from handle
+        /// </summary>
+        private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Create(h);
+
+        public Registration(Container container, IEnumerable<MethodInfo> methods)
         {
             _container = container;
             _methods = methods;
-            _factory = factory;
+            _creator = _container.GetInstance<ICreator>();
         }
 
+        /// <summary>
+        ///     Create static method from member method by invoking factory using Container
+        /// </summary>
+        /// <param name="method">Test</param>
+        /// <param name="arguments"></param>
+        /// <param name="callArguments"></param>
+        /// <returns></returns>
+        // #ExcelDnaRegistration #ConvertToStatic Create static method from member method by invoking factory using Container
         private LambdaExpression ConvertToStatic(MethodInfo method, List<Expression> arguments, List<ParameterExpression> callArguments)
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
-            Expression<Func<string, IPublicObject>> expr = h => _factory(_container, h); //h => Public.This(h);
+            //Expression<Func<string, IPublicObject>> createPublicExpression = h => _creator.Create(h);
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
 
             var block = Expression.Block(
                 new[] {instanceParam},
-                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(expr, handleParam),method.DeclaringType)),
+                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(CreatePublic, handleParam),method.DeclaringType)),
                 Expression.Call(instanceParam, method, arguments)
             );
 
@@ -70,6 +86,12 @@ namespace CommonAddin
             return callExpr;
         }
 
+        /// <summary>
+        /// Wraps the method into a lambda to associate with excel UDF
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        // #ExcelDnaRegistration Wraps the method into a lambda to associate with excel UDF
         private LambdaExpression WrapMethod(MethodInfo method)
         {
             if (method.DeclaringType == null)
@@ -93,7 +115,10 @@ namespace CommonAddin
             return Expression.Lambda(callExpr, method.Name, callParams);
         }
 
-        // register all functions with IExcel attributes
+        /// <summary>
+        ///     Export all methods marked with [IExcelFunction] as excel functions
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<ExcelFunctionRegistration> GetAllRegistrations()
         {
             var registrationList = new List<ExcelFunctionRegistration>();

@@ -25,18 +25,25 @@ namespace CommonAddin
     {
         public Container Container { get; set; }
         public IEnumerable<MethodInfo> Methods { get; set; }
-        public Func<Container,string,IPublicObject> Factory { get; set; }
+
+
+        /// <summary>
+        /// Convert Error exceptions to string messages to be displayed in UDF cell
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        private object OnError(object ex)
+        {
+            var errorMessage = ex as Error;
+            if (errorMessage == null)
+                return ExcelError.ExcelErrorValue;
+
+            return errorMessage.Message;
+        }
 
         public virtual void AutoOpen()
         { 
-            ExcelIntegration.RegisterUnhandledExceptionHandler(ex =>
-            {
-                var errorMessage = ex as Error;
-                if (errorMessage == null)
-                    return ExcelError.ExcelErrorValue;
-
-                return errorMessage.Message;
-            });
+            ExcelIntegration.RegisterUnhandledExceptionHandler(OnError);
 
             // Set the Parameter Conversions before they are applied by the ProcessParameterConversions call below.
             // CONSIDER: We might change the registration to be an object...?
@@ -49,7 +56,7 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            var registration = new Registration(Container,Methods,Factory);
+            var registration = new Registration(Container,Methods);
             var bindingService = Container.GetInstance<IBindingService>();
             var application = (Application)ExcelDnaUtil.Application;
             application.SheetChange += bindingService.OnSheetChange;
@@ -63,6 +70,10 @@ namespace CommonAddin
         {
         }
 
+        /// <summary>
+        /// Convert excel range parameter to arrays and null objects to NA
+        /// </summary>
+        /// <returns></returns>
         private static ParameterConversionConfiguration GetParameterConversionConfig()
         {
             var paramConversionConfig = new ParameterConversionConfiguration()
