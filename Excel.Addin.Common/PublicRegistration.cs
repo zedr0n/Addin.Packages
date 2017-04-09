@@ -63,7 +63,7 @@ namespace CommonAddin
         /// <param name="arguments"></param>
         /// <param name="callArguments"></param>
         /// <returns></returns>
-        // #ExcelDnaRegistration #ConvertToStatic Create static method from member method by invoking factory using Container
+        // #ExcelDnaRegistration #StaticConversion Create static method from member method by invoking factory using Container
         private LambdaExpression ConvertToStatic(MethodInfo method, List<Expression> arguments, List<ParameterExpression> callArguments)
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");

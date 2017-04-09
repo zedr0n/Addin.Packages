@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 using ExcelInterfaces;
 using SimpleInjector;
+using SimpleInjector.Advanced;
 using Application = Microsoft.Office.Interop.Excel.Application;
 
 namespace CommonAddin
@@ -74,8 +76,10 @@ namespace CommonAddin
         /// Convert excel range parameter to arrays and null objects to NA
         /// </summary>
         /// <returns></returns>
-        private static ParameterConversionConfiguration GetParameterConversionConfig()
+        private ParameterConversionConfiguration GetParameterConversionConfig()
         {
+            var creator = Container.GetInstance<ICreator>();
+
             var paramConversionConfig = new ParameterConversionConfiguration()
 
                 // Register the Standard Parameter Conversions (with the optional switch on how to treat references to empty cells)
@@ -87,8 +91,17 @@ namespace CommonAddin
                 // conversion that is consist with Excel (in this case, Excel is called to do the conversion).
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToInt32).ToArray())
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
+                // #ParameterConversion Convert handle to public object
+                .AddParameterConversion((object obj) => creator.Create((string) obj))
+                //.AddParameterConversion((string handle) => handle.Contains("::") ? Container.GetInstance<ICreator>().Create(handle) : handle )
+                //.AddParameterConversion((Type type, ExcelParameterRegistration paramReg) =>
+                //    (Expression<Func<object, IPublicObject>>)(obj => creator.Create((string)obj)), typeof(IPublicObject))
+                //paramReg.ArgumentAttribute.Name == "oTransaction" ? (Expression<Func<object, IPublicObject>>)(obj => creator.Create((string)obj)) : null, typeof(IPublicObject))
+                //(Expression<Func<object,IPublicObject>>) (obj => paramReg.ArgumentAttribute.Name == "hTransaction" ? creator.Create((string) obj) : null),typeof(IPublicObject))
 
-                .AddReturnConversion((object obj) => obj.IsDefault() ? ExcelError.ExcelErrorNA : obj);
+                .AddReturnConversion((object obj) => obj.IsDefault() ? ExcelError.ExcelErrorNA : obj)
+                // #ReturnConversion Convert public objects to its handle for excel display
+                .AddReturnConversion((IPublicObject obj) => obj.Handle );
 
             return paramConversionConfig;
         }
