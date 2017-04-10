@@ -9,6 +9,26 @@ using Application = Microsoft.Office.Interop.Excel.Application;
 
 namespace CommonAddin
 {
+    public static class PropExtensions
+    {
+        // returns property setter:
+        public static Action<TObject, TProperty> GetPropSetter<TObject, TProperty>(string propertyName)
+        {
+            ParameterExpression paramExpression = Expression.Parameter(typeof(TObject));
+
+            ParameterExpression paramExpression2 = Expression.Parameter(typeof(TProperty), propertyName);
+
+            MemberExpression propertyGetterExpression = Expression.Property(paramExpression, propertyName);
+
+            Action<TObject, TProperty> result = Expression.Lambda<Action<TObject, TProperty>>
+            (
+                Expression.Assign(propertyGetterExpression, paramExpression2), paramExpression, paramExpression2
+            ).Compile();
+
+            return result;
+        }
+    }
+
     public class BindingService : IBindingService
     {
         private readonly Dictionary<string,Binding> _bindings = new Dictionary<string, Binding>();
@@ -71,7 +91,11 @@ namespace CommonAddin
             {
                 var property = memberSelectorExpression.Member as PropertyInfo;
                 if (property != null)
-                    _property = value => property.SetValue(obj, value, null);
+                {
+                    //    _property = value => property.SetValue(obj, value, null);
+                    var setter = PropExtensions.GetPropSetter<T, TProperty>(property.Name);
+                    _property = x => setter(obj,x);
+                }   
             }
         }
     }

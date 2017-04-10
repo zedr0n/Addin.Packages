@@ -66,6 +66,7 @@ namespace CommonAddin
             registration.GetAllRegistrations()
                 .ProcessParameterConversions(conversionConfig)
                 .ProcessParamsRegistrations()
+                .ProcessAsyncRegistrations()
                 .RegisterFunctions();
         }
         public void AutoClose()
