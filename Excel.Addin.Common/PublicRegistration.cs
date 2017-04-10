@@ -39,6 +39,7 @@ namespace CommonAddin
     {
         private readonly Container _container;
         private readonly IEnumerable<MethodInfo> _methods;
+        private readonly IEnumerable<PropertyInfo> _properties;
 
         /// <summary>
         ///     Creates Public object from handle using container to resolve dependencies
@@ -49,11 +50,12 @@ namespace CommonAddin
         /// </summary>
         private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Get(h);
 
-        public Registration(Container container, IEnumerable<MethodInfo> methods)
+        public Registration(Container container, IEnumerable<MethodInfo> methods, IEnumerable<PropertyInfo> properties)
         {
             _container = container;
             _methods = methods;
             _creator = _container.GetInstance<ICreator>();
+            _properties = properties;
         }
 
         /// <summary>
@@ -115,6 +117,63 @@ namespace CommonAddin
         }
 
         /// <summary>
+        /// Wraps the property into a RTD getter lambda to associate with excel UDF
+        /// </summary>
+        /// <returns></returns>
+        private LambdaExpression GetProperty(PropertyInfo property)
+        {
+            var instanceParam = Expression.Parameter(property.DeclaringType, "instance");
+            var handleParam = Expression.Parameter(typeof(string), "handle");
+            //var propertyParam = Expression.Parameter(typeof(ParameterExpression), "getter");
+
+            //var method = _rtdService.GetType().GetMethod("Observe").MakeGenericMethod(property.DeclaringType,property.PropertyType);
+            //var rxMethod = property.DeclaringType.GetMethod("GetObservable")
+            //    .MakeGenericMethod(property.DeclaringType, property.PropertyType);
+            var method = property.DeclaringType.GetMethod("Get");
+            if (method == null)
+                throw new Error("Declare a Get method on your public objects");
+
+
+            var block = Expression.Block(
+                new[] { instanceParam },
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
+                //Expression.Assign(propertyParam,Expression.Property(instanceParam,property)),
+                Expression.Call(instanceParam,method,Expression.Constant(property.Name))
+                //Expression.Call(instanceParam, method, arguments)
+            );
+
+            var allArguments = new List<ParameterExpression> { handleParam };
+
+            var callExpr = Expression.Lambda(block, allArguments);
+            return callExpr;
+
+        }
+
+        /// <summary>
+        /// Wraps the property into a RTD bind lambda to associate with excel UDF
+        /// </summary>
+        /// <returns></returns>
+        private LambdaExpression BindProperty(PropertyInfo property)
+        {
+            var instanceParam = Expression.Parameter(property.DeclaringType, "instance");
+            var handleParam = Expression.Parameter(typeof(string), "handle");
+            var method = property.DeclaringType.GetMethod("Bind");
+            if (method == null)
+                throw new Error("Declare a Bind method on your public objects");
+
+            var block = Expression.Block(
+                new[] { instanceParam },
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
+                Expression.Call(instanceParam, method, Expression.Constant(property.Name))
+            );
+
+            var allArguments = new List<ParameterExpression> { handleParam };
+
+            var callExpr = Expression.Lambda(block, allArguments);
+            return callExpr;
+        }
+
+        /// <summary>
         ///     Export all methods marked with [IExcelFunction] as excel functions
         /// </summary>
         /// <returns></returns>
@@ -148,6 +207,24 @@ namespace CommonAddin
 
                 var registration = new ExcelFunctionRegistration(lambda,attribute.ToExcelFunctionAttribute(name), parameters);
                 registrationList.Add(registration);
+            }
+            foreach (var property in _properties.Where(p => p.DeclaringType.GetInterfaces().Contains(typeof(IBindable))))
+            {
+                var getLambda = GetProperty(property);
+                var attribute = (IExcelFunctionAttribute)property.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
+                var handleParameter = new ExcelParameterRegistration(new ExcelArgumentAttribute() { Name = "Handle" });
+
+                var getRegistration = new ExcelFunctionRegistration(getLambda,
+                    attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Get" +property.Name),
+                    new List<ExcelParameterRegistration>() { handleParameter });
+                registrationList.Add(getRegistration);
+
+                var bindLambda = BindProperty(property);
+                var bindRegistration = new ExcelFunctionRegistration(bindLambda,
+                    attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Bind" + property.Name),
+                    new List<ExcelParameterRegistration>() { handleParameter });
+                registrationList.Add(bindRegistration);
+
             }
             return registrationList;
         }

@@ -8,7 +8,7 @@ namespace ExcelInterfaces
         
     }
 
-    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public class IExcelFunctionAttribute : Attribute
     {
         public string Name = null;

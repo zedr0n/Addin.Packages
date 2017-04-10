@@ -27,6 +27,7 @@ namespace CommonAddin
     {
         public Container Container { get; set; }
         public IEnumerable<MethodInfo> Methods { get; set; }
+        public List<PropertyInfo> Properties { get; set; } = new List<PropertyInfo>();
 
 
         /// <summary>
@@ -58,7 +59,7 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            var registration = new Registration(Container,Methods);
+            var registration = new Registration(Container,Methods,Properties);
             var bindingService = Container.GetInstance<IBindingService>();
             var application = (Application)ExcelDnaUtil.Application;
             application.SheetChange += bindingService.OnSheetChange;
