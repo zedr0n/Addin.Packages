@@ -124,29 +124,17 @@ namespace CommonAddin
         {
             var instanceParam = Expression.Parameter(property.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
-            //var propertyParam = Expression.Parameter(typeof(ParameterExpression), "getter");
-
-            //var method = _rtdService.GetType().GetMethod("Observe").MakeGenericMethod(property.DeclaringType,property.PropertyType);
-            //var rxMethod = property.DeclaringType.GetMethod("GetObservable")
-            //    .MakeGenericMethod(property.DeclaringType, property.PropertyType);
-            var method = property.DeclaringType.GetMethod("Get");
-            if (method == null)
-                throw new Error("Declare a Get method on your public objects");
-
-
+            var method = typeof(BindExtensions).GetMethod(nameof(BindExtensions.GetProperty));
             var block = Expression.Block(
                 new[] { instanceParam },
                 Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
-                //Expression.Assign(propertyParam,Expression.Property(instanceParam,property)),
-                Expression.Call(instanceParam,method,Expression.Constant(property.Name))
-                //Expression.Call(instanceParam, method, arguments)
+                Expression.Call(method,instanceParam,Expression.Constant(property.Name))
             );
 
             var allArguments = new List<ParameterExpression> { handleParam };
 
             var callExpr = Expression.Lambda(block, allArguments);
             return callExpr;
-
         }
 
         /// <summary>
@@ -157,14 +145,12 @@ namespace CommonAddin
         {
             var instanceParam = Expression.Parameter(property.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
-            var method = property.DeclaringType.GetMethod("Bind");
-            if (method == null)
-                throw new Error("Declare a Bind method on your public objects");
+            var method = typeof(BindExtensions).GetMethod(nameof(BindExtensions.BindProperty));
 
             var block = Expression.Block(
                 new[] { instanceParam },
                 Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
-                Expression.Call(instanceParam, method, Expression.Constant(property.Name))
+                Expression.Call(method,instanceParam, Expression.Constant(property.Name))
             );
 
             var allArguments = new List<ParameterExpression> { handleParam };

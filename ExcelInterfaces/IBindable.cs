@@ -6,8 +6,10 @@ using System.Reflection;
 
 namespace ExcelInterfaces
 {
-    public interface IBindable : IPublicObject 
+    public interface IBindable : IPublicObject
     {
+        object Bind(string propertyName);
+        object Get(string propertyName);
         IBindingService BindingService { get; }
         IObservableRtdService RtdService { get; }
     }
@@ -53,26 +55,5 @@ namespace ExcelInterfaces
         {
             return (TProperty)This.RtdService.ObserveProperty<TInstance, TProperty>(nameof(TInstance) + ".Get" + propertyName, This.Object as TInstance, propertyName);
         }
-
-        /*public static object Get(this IBindable This, string propertyName)
-        {
-            
-        }
-        public static TProperty GetProperty<TInstance, TProperty>(this IBindable This, string propertyName)
-            where TInstance : class
-        {
-            var property = GetPropertyEx<TInstance, TProperty>(This.Object as TInstance, propertyName);
-            var value = property.Compile()(This.Object as TInstance);
-            return (TProperty)This.RtdService.Observe(nameof(TInstance) + ".Get" + propertyName, null,
-                () => (This.Object as TInstance).RxValue<TInstance, TProperty>(property, value));
-        }
-
-        public static Expression<Func<TInstance, TProperty>> GetPropertyEx<TInstance, TProperty>(TInstance obj, string propertyName)
-        {
-            var pe = Expression.Parameter(obj.GetType());
-            var me = Expression.Property(pe, propertyName);
-
-            return Expression.Lambda<Func<TInstance, TProperty>>(me, pe);
-        }*/
     }
 }
