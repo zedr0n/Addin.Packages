@@ -57,8 +57,11 @@ namespace CommonAddin
         {
             if (_bindings.All(x => x.Key != cell))
                 return;
-            var binding = _bindings.SingleOrDefault(x => x.Key == cell);
-            binding.Value?.Set(value);
+            var binding = _bindings[cell];
+            if (value == null)
+                _bindings[cell] = null;
+            else
+                binding?.Set(value);
         }
 
         /// <summary>
