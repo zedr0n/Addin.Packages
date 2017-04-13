@@ -6,12 +6,15 @@ namespace ExcelInterfaces
 {
     public interface IBindingService : IInjectable
     {
-        void AddBinding<T,TProperty>(string cell, T obj, Expression<Func<T, TProperty>> memberLambda) where T : class;
+        IAddressService AddressService { get; set; }
+        TProperty AddBinding<T,TProperty>(T obj, string propertyName) where T : class;
+        void AddBinding<T, TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda) where T : class;
         /// <summary>
         /// Syncs the property values for the bound objects for changed cell
         /// </summary>
-        /// <param name="sheet"></param>
-        /// <param name="target"></param>
+        /// <param name="sheet">Excel worksheet object</param>
+        /// <param name="target">Excel target range</param>
         void OnSheetChange(object sheet, object target);
+
     }
 }

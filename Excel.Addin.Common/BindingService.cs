@@ -33,8 +33,23 @@ namespace CommonAddin
     {
         private readonly Dictionary<string,Binding> _bindings = new Dictionary<string, Binding>();
 
-        public void AddBinding<T,TProperty>(string cell, T obj, Expression<Func<T, TProperty>> memberLambda) where T : class
+        public IAddressService AddressService { get; set; }
+
+        public BindingService(IAddressService addressService)
         {
+            AddressService = addressService;
+        }
+
+        public TProperty AddBinding<T,TProperty>(T obj, string propertyName) where T : class
+        {
+            var lambda = BindExtensions.GetPropertyEx<T, TProperty>(obj, propertyName);
+            AddBinding(obj,lambda);
+            return lambda.Compile()(obj);
+        }
+
+        public void AddBinding<T,TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda) where T : class
+        {
+            var cell = AddressService.GetAddress();
             _bindings[cell] = new Binding<T, TProperty>(cell, obj, memberLambda);
         }
 
@@ -60,6 +75,8 @@ namespace CommonAddin
             // What to do with cut and paste???
             // the address should update
         }
+
+
     }
 
     public class Binding

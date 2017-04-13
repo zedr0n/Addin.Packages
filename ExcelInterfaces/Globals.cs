@@ -14,6 +14,11 @@ namespace ExcelInterfaces
         object Object { get; }
     }
 
+    public interface IPublicObject<T> : IPublicObject where T : class
+    {
+        T Instance { get; }
+    }
+
     public class Error : Exception
     {
         public Error(string message) :
