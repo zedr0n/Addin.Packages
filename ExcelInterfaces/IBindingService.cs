@@ -16,5 +16,6 @@ namespace ExcelInterfaces
         /// <param name="target">Excel target range</param>
         void OnSheetChange(object sheet, object target);
 
+        string AddCreation<T>(T obj) where T : IPublicObject;
     }
 }

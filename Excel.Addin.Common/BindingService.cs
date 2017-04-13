@@ -32,6 +32,7 @@ namespace CommonAddin
     public class BindingService : IBindingService
     {
         private readonly Dictionary<string,Binding> _bindings = new Dictionary<string, Binding>();
+        private readonly Dictionary<string, string> _cellHandles = new Dictionary<string, string>();
 
         public IAddressService AddressService { get; set; }
 
@@ -62,6 +63,9 @@ namespace CommonAddin
                 _bindings[cell] = null;
             else
                 binding?.Set(value);
+
+            // reset the handle association on change
+            _cellHandles[cell] = null;
         }
 
         /// <summary>
@@ -79,7 +83,16 @@ namespace CommonAddin
             // the address should update
         }
 
+        public string AddCreation<T>(T obj) where T : IPublicObject
+        {
+            var cell = AddressService.GetAddress();
 
+            if (_cellHandles.ContainsKey(cell))
+                return _cellHandles[cell];
+            _cellHandles[cell] = obj.Handle;
+
+            return _cellHandles[cell];
+        }
     }
 
     public class Binding
