@@ -194,20 +194,28 @@ namespace CommonAddin
                 var registration = new ExcelFunctionRegistration(lambda,attribute.ToExcelFunctionAttribute(name), parameters);
                 registrationList.Add(registration);
             }
+            // #PropertyConversion Register Get* and Bind* methods for properties marked with IExcelFunction
             foreach (var property in _properties.Where(p => p.DeclaringType.GetInterfaces().Contains(typeof(IBindable))))
             {
                 var getLambda = GetProperty(property);
                 var attribute = (IExcelFunctionAttribute)property.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
                 var handleParameter = new ExcelParameterRegistration(new ExcelArgumentAttribute() { Name = "Handle" });
 
+                // we do not register twice the base properties
+                if (property.ReflectedType != property.DeclaringType)
+                    continue;
+
+                var className = property.ReflectedType.Name.Replace("Public","");
+
                 var getRegistration = new ExcelFunctionRegistration(getLambda,
-                    attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Get" +property.Name),
+                    //attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Get" +property.Name),
+                    attribute.ToExcelFunctionAttribute(className + "." + "Get" + property.Name),
                     new List<ExcelParameterRegistration>() { handleParameter });
                 registrationList.Add(getRegistration);
 
                 var bindLambda = BindProperty(property);
                 var bindRegistration = new ExcelFunctionRegistration(bindLambda,
-                    attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Bind" + property.Name),
+                    attribute.ToExcelFunctionAttribute(className + "." + "Bind" + property.Name),
                     new List<ExcelParameterRegistration>() { handleParameter });
                 registrationList.Add(bindRegistration);
 
