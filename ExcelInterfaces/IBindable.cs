@@ -8,8 +8,6 @@ namespace ExcelInterfaces
 {
     public interface IBindable : IPublicObject
     {
-        object Bind(string propertyName);
-        object Get(string propertyName);
         IBindingService BindingService { get; }
         IObservableRtdService RtdService { get; }
     }
