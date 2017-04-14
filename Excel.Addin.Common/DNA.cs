@@ -7,9 +7,11 @@ using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 using ExcelInterfaces;
+using Microsoft.Office.Interop.Excel;
 using SimpleInjector;
 using SimpleInjector.Advanced;
 using Application = Microsoft.Office.Interop.Excel.Application;
+using Error = ExcelInterfaces.Error;
 
 namespace CommonAddin
 {

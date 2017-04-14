@@ -82,17 +82,6 @@ namespace CommonAddin
             // What to do with cut and paste???
             // the address should update
         }
-
-        public string AddCreation<T>(T obj) where T : IPublicObject
-        {
-            var cell = AddressService.GetAddress();
-
-            if (_cellHandles.ContainsKey(cell))
-                return _cellHandles[cell];
-            _cellHandles[cell] = obj.Handle;
-
-            return _cellHandles[cell];
-        }
     }
 
     public class Binding

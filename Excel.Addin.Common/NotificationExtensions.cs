@@ -50,9 +50,18 @@ namespace CommonAddin
             });
         }
 
-        public static IObservable<TProperty> RxValue<T, TProperty>(this T source, Expression<Func<T, TProperty>> property, TProperty value)
+        /// <summary>
+        /// Returns an observable sequence of the value of a property when <paramref name="source"/> raises <seealso cref="INotifyPropertyChanged.PropertyChanged"/> for the given property including its current value first.
+        /// </summary>
+        /// <typeparam name="T">The type of the source object. Type must implement <seealso cref="INotifyPropertyChanged"/>.</typeparam>
+        /// <typeparam name="TProperty">The type of the property that is being observed.</typeparam>
+        /// <param name="source">The object to observe property changes on.</param>
+        /// <param name="property">An expression that describes which property to observe.</param>
+        /// <returns>Returns an observable sequence of the property values as they change including the current value.</returns>
+        public static IObservable<TProperty> RxValue<T, TProperty>(this T source, Expression<Func<T, TProperty>> property)
             where T : INotifyPropertyChanged
         {
+            var value = property.Compile()(source);
             return Observable.Return(value).Concat(source.OnPropertyChanges(property));
         }
 

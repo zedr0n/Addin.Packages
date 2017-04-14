@@ -16,9 +16,7 @@ namespace CommonAddin
             where TInstance : INotifyPropertyChanged
         {
             var property = BindExtensions.GetPropertyEx<TInstance, TProperty>(instance, propertyName);
-            var value = property.Compile()(instance);
-            return Observe(functionName, null,
-                () => instance.RxValue(property, value));
+            return Observe(functionName, null, () => instance.RxValue(property));
         }
     }
 }
