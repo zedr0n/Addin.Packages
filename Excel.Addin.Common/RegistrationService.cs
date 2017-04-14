@@ -16,7 +16,7 @@ namespace CommonAddin
             var button = worksheet.Buttons(buttonName) as Button;
             button.OnAction = functionName;
 
-            if (_buttonHandles.ContainsKey(buttonName))
+            if (_buttonHandles.ContainsKey(buttonName) && _buttonHandles[buttonName] == handle)
                 return false;
             _buttonHandles[buttonName] = handle;
             return true;
