@@ -36,7 +36,7 @@ namespace ExcelInterfaces
     public class ObjectMissing : Error
     {
         public ObjectMissing(string handle) :
-            base("Object missing : " + handle)
+            base(handle.Contains("#Err") ? handle : "Object missing : " + handle)
         {
         }
     }
