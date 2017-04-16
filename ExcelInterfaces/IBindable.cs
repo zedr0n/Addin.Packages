@@ -51,7 +51,7 @@ namespace ExcelInterfaces
         public static TProperty GetPropertyEx<TInstance, TProperty>(this IBindable This, string propertyName)
             where TInstance : class, INotifyPropertyChanged
         {
-            return (TProperty)This.RtdService.ObserveProperty<TInstance, TProperty>(nameof(TInstance) + ".Get" + propertyName, This.Object as TInstance, propertyName);
+            return (TProperty)This.RtdService.ObserveProperty<TInstance, TProperty>(typeof(TInstance).Name + ".Get" + propertyName, This.Object as TInstance, propertyName);
         }
     }
 }
