@@ -22,6 +22,7 @@ namespace ExcelInterfaces
         public bool IsThreadSafe = false;
         public bool IsClusterSafe = false;
         public bool ExplicitRegistration = false;
+        public bool IsFactory = false;
 
         public IExcelFunctionAttribute()
         {

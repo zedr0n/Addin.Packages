@@ -6,8 +6,14 @@ namespace ExcelInterfaces
     public interface ICreator : IInjectable
     {
         IPublicObject Get(string handle);
-        IPublicObject Get(string handle, Type publicType);
+        IPublicObject Create(Type publicType);
         IPublicObject Create<TPublic, TInstance>(string handle, TInstance instance) where TPublic : Public<TInstance>
                                                                                     where TInstance : class;
+    }
+
+    public interface ICreator<out TPublic> : IInjectable
+        where TPublic : IPublicObject
+    {
+        TPublic Default();
     }
 }

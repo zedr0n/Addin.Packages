@@ -49,6 +49,9 @@ namespace CommonAddin
         /// Expression to create public object from handle
         /// </summary>
         private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Get(h);
+        //private Expression<Func<IPublicObject>> CreateDefault =
+
+        //private Expression<Func<string, IPublicObject>> CreateDefault => h => _creator.Get();
 
         public Registration(Container container, IEnumerable<MethodInfo> methods, IEnumerable<PropertyInfo> properties)
         {
@@ -70,14 +73,14 @@ namespace CommonAddin
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
-            Expression<Func<string, IPublicObject>> createExpression = h => _creator.Get(h,method.DeclaringType);
+            //Expression<Func<string, IPublicObject>> createExpression =;
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
 
             var block = Expression.Block(
                 new[] {instanceParam},
-                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(createExpression, handleParam),method.DeclaringType)),
+                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(CreatePublic, handleParam),method.DeclaringType)),
                 Expression.Call(instanceParam, method, arguments)
             );
 
@@ -88,12 +91,50 @@ namespace CommonAddin
             return callExpr;
         }
 
+        private LambdaExpression ConvertFactoryToStatic(MethodInfo method, List<Expression> arguments,
+            List<ParameterExpression> callArguments)
+        {
+            return (LambdaExpression) typeof(Registration).GetMethod(nameof(ConvertFactoryToStaticEx))
+                .MakeGenericMethod(method.DeclaringType)
+                .Invoke(this, new object[] {method, arguments, callArguments});
+        }
+
+        /// <summary>
+        ///     Create static method from factory create method by invoking create method from default public object using Container
+        /// </summary>
+        /// <param name="method">Test</param>
+        /// <param name="arguments"></param>
+        /// <param name="callArguments"></param>
+        /// <returns></returns>
+        // #StaticConversion Create static method from member method by invoking factory using Container
+        // #DefaultConversion Create default instance of public object before invoking the method
+        public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<Expression> arguments,
+            List<ParameterExpression> callArguments) where T : IPublicObject
+        {
+            Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
+
+            var creator = _container.GetInstance<ICreator<T>>();
+
+            Expression<Func<IPublicObject>> createExpression = () => creator.Default();
+
+            var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
+
+            var block = Expression.Block(
+                new[] { instanceParam },
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(createExpression), method.DeclaringType)),
+                Expression.Call(instanceParam, method, arguments)
+            );
+
+            var callExpr = Expression.Lambda(block, callArguments);
+            return callExpr;
+        }
+
         /// <summary>
         /// Wraps the method into a lambda to associate with excel UDF
         /// </summary>
         /// <param name="method"></param>
         /// <returns></returns>
-        private LambdaExpression WrapMethod(MethodInfo method)
+        private LambdaExpression WrapMethod(MethodInfo method, bool isFactory)
         {
             if (method.DeclaringType == null)
                 return null;
@@ -110,7 +151,7 @@ namespace CommonAddin
                 .Select(e => e as ParameterExpression).ToList();
 
             if (!method.IsStatic)
-                return ConvertToStatic(method, allParams,callParams);
+                return !isFactory ? ConvertToStatic(method, allParams, callParams) : ConvertFactoryToStatic(method, allParams, callParams);
 
             var callExpr = Expression.Call(method, allParams);
             return Expression.Lambda(callExpr, method.Name, callParams);
@@ -168,22 +209,23 @@ namespace CommonAddin
             var registrationList = new List<ExcelFunctionRegistration>();
             foreach (var methodInfo in _methods)
             {
-                var lambda = WrapMethod(methodInfo);
                 var attribute = (IExcelFunctionAttribute)methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
+                var lambda = WrapMethod(methodInfo, attribute.IsFactory);
                 var parameters = methodInfo.GetParameters()
                     .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
                     .Select(p => new ExcelParameterRegistration(p)).ToList();
                 var name = methodInfo.Name;
                 if (!methodInfo.IsStatic)
                 {
+                    if(!attribute.IsFactory)
                     // add handle as a string parameter to resolve the instance
-                    parameters.Insert(0, new ExcelParameterRegistration(
-                        new ExcelArgumentAttribute()
-                        {
-                            AllowReference = true,
-                            Description = "Object handle",
-                            Name = "Handle"
-                        }));
+                        parameters.Insert(0, new ExcelParameterRegistration(
+                            new ExcelArgumentAttribute()
+                            {
+                                AllowReference = true,
+                                Description = "Object handle",
+                                Name = "Handle"
+                            }));
                     if (!methodInfo.DeclaringType.IsGenericType)
                         name = methodInfo.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + name;
                     else
