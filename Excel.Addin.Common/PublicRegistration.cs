@@ -91,6 +91,7 @@ namespace CommonAddin
             return callExpr;
         }
 
+        [DebuggerStepThrough]
         private LambdaExpression ConvertFactoryToStatic(MethodInfo method, List<Expression> arguments,
             List<ParameterExpression> callArguments)
         {
