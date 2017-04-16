@@ -107,7 +107,6 @@ namespace CommonAddin
         /// <param name="arguments"></param>
         /// <param name="callArguments"></param>
         /// <returns></returns>
-        // #StaticConversion Create static method from member method by invoking factory using Container
         // #DefaultConversion Create default instance of public object before invoking the method
         public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<Expression> arguments,
             List<ParameterExpression> callArguments) where T : IPublicObject
