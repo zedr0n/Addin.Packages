@@ -70,14 +70,14 @@ namespace CommonAddin
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
-            //Expression<Func<string, IPublicObject>> createPublicExpression = h => _creator.Create(h);
+            Expression<Func<string, IPublicObject>> createExpression = h => _creator.Get(h,method.DeclaringType);
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
 
             var block = Expression.Block(
                 new[] {instanceParam},
-                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(CreatePublic, handleParam),method.DeclaringType)),
+                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(createExpression, handleParam),method.DeclaringType)),
                 Expression.Call(instanceParam, method, arguments)
             );
 
