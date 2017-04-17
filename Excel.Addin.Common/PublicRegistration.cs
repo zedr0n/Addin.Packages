@@ -78,10 +78,16 @@ namespace CommonAddin
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
             var handleParam = Expression.Parameter(typeof(string), "handle");
 
+            var isPublic = method.ReturnType.GetInterfaces().Contains(typeof(IPublicObject)) && method.ReturnType != typeof(IPublicObject);
+
+            Expression methodCallExpression = Expression.Call(instanceParam, method, arguments);
+            if (isPublic)
+                methodCallExpression = Expression.Convert(methodCallExpression, typeof(IPublicObject));
+
             var block = Expression.Block(
                 new[] {instanceParam},
                 Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(CreatePublic, handleParam),method.DeclaringType)),
-                Expression.Call(instanceParam, method, arguments)
+                methodCallExpression
             );
 
             var allArguments = new List<ParameterExpression>(callArguments);
@@ -119,10 +125,16 @@ namespace CommonAddin
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
 
+            var isPublic = method.ReturnType.GetInterfaces().Contains(typeof(IPublicObject)) && method.ReturnType != typeof(IPublicObject);
+
+            Expression methodCallExpression = Expression.Call(instanceParam, method, arguments);
+            if (isPublic)
+                methodCallExpression = Expression.Convert(methodCallExpression, typeof(IPublicObject));
+
             var block = Expression.Block(
                 new[] { instanceParam },
                 Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(createExpression), method.DeclaringType)),
-                Expression.Call(instanceParam, method, arguments)
+                methodCallExpression
             );
 
             var callExpr = Expression.Lambda(block, callArguments);
