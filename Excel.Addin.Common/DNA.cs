@@ -28,7 +28,7 @@ namespace CommonAddin
     public class ExcelAddin : IExcelAddIn
     {
         public Container Container { get; set; }
-        public List<MethodInfo> Methods { get; set; }
+        public List<MethodInfo> Methods { get; set; } = new List<MethodInfo>();
         public List<PropertyInfo> Properties { get; set; } = new List<PropertyInfo>();
 
 
