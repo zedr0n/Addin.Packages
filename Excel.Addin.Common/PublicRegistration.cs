@@ -69,7 +69,7 @@ namespace CommonAddin
         /// <param name="callArguments"></param>
         /// <returns></returns>
         // #StaticConversion Create static method from member method by invoking factory using Container
-        private LambdaExpression ConvertToStatic(MethodInfo method, List<Expression> arguments, List<ParameterExpression> callArguments)
+        private LambdaExpression ConvertToStatic(MethodInfo method, List<ParameterExpression> arguments)
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
@@ -90,7 +90,7 @@ namespace CommonAddin
                 methodCallExpression
             );
 
-            var allArguments = new List<ParameterExpression>(callArguments);
+            var allArguments = new List<ParameterExpression>(arguments);
             allArguments.Insert(0, handleParam);
 
             var callExpr = Expression.Lambda(block, allArguments);
@@ -98,12 +98,11 @@ namespace CommonAddin
         }
 
         [DebuggerStepThrough]
-        private LambdaExpression ConvertFactoryToStatic(MethodInfo method, List<Expression> arguments,
-            List<ParameterExpression> callArguments)
+        private LambdaExpression ConvertFactoryToStatic(MethodInfo method, List<ParameterExpression> arguments)
         {
             return (LambdaExpression) typeof(Registration).GetMethod(nameof(ConvertFactoryToStaticEx))
                 .MakeGenericMethod(method.DeclaringType)
-                .Invoke(this, new object[] {method, arguments, callArguments});
+                .Invoke(this, new object[] {method, arguments});
         }
 
         /// <summary>
@@ -114,8 +113,7 @@ namespace CommonAddin
         /// <param name="callArguments"></param>
         /// <returns></returns>
         // #DefaultConversion Create default instance of public object before invoking the method
-        public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<Expression> arguments,
-            List<ParameterExpression> callArguments) where T : IPublicObject
+        public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<ParameterExpression> arguments) where T : IPublicObject
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
@@ -137,7 +135,7 @@ namespace CommonAddin
                 methodCallExpression
             );
 
-            var callExpr = Expression.Lambda(block, callArguments);
+            var callExpr = Expression.Lambda(block, arguments);
             return callExpr;
         }
 
@@ -151,22 +149,15 @@ namespace CommonAddin
             if (method.DeclaringType == null)
                 return null;
 
-            var allParams = method.GetParameters().Select<ParameterInfo, Expression>(
-                p =>
-                {
-                    if (p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
-                        return Expression.Constant(_container.GetInstance(p.ParameterType));
-                    return Expression.Parameter(p.ParameterType, p.Name);
-                }).ToList();
-
-            var callParams = allParams.Where(p => p.NodeType == ExpressionType.Parameter)
+            var arguments = method.GetParameters()
+                .Select<ParameterInfo,Expression>(p => Expression.Parameter(p.ParameterType,p.Name))
                 .Select(e => e as ParameterExpression).ToList();
 
             if (!method.IsStatic)
-                return !isFactory ? ConvertToStatic(method, allParams, callParams) : ConvertFactoryToStatic(method, allParams, callParams);
+                return !isFactory ? ConvertToStatic(method, arguments) : ConvertFactoryToStatic(method, arguments);
 
-            var callExpr = Expression.Call(method, allParams);
-            return Expression.Lambda(callExpr, method.Name, callParams);
+            var callExpr = Expression.Call(method, arguments);
+            return Expression.Lambda(callExpr, method.Name, arguments);
         }
 
         /// <summary>
