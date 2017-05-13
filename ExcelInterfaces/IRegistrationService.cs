@@ -1,6 +1,8 @@
-﻿namespace ExcelInterfaces
+﻿using IoC;
+
+namespace ExcelInterfaces
 {
-    public interface IRegistrationService
+    public interface IRegistrationService : IInjectable
     {
         IStatusService StatusService { get; set; }
         bool RegisterButton(string buttonName, string functionName,string handle);
