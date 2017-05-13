@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
-using IoC;
-
 using ExcelInterfaces;
+using IoC;
 using SimpleInjector;
 
-namespace CommonAddin
+namespace Excel.Addin.Common
 {
     public static class AttributeExtension
     {
@@ -37,28 +35,15 @@ namespace CommonAddin
 
     public class Registration
     {
+        private readonly Expression<Func<string, IPublicObject>> _createExpression;
         private readonly Container _container;
-        private readonly IEnumerable<MethodInfo> _methods;
-        private readonly IEnumerable<PropertyInfo> _properties;
+        private readonly List<ExcelFunctionRegistration> _registrations = new List<ExcelFunctionRegistration>();
 
-        /// <summary>
-        ///     Creates Public object from handle using container to resolve dependencies
-        /// </summary>
-        private readonly ICreator _creator;
-        /// <summary>
-        /// Expression to create public object from handle
-        /// </summary>
-        private Expression<Func<string, IPublicObject>> CreatePublic => h => _creator.Get(h);
-        //private Expression<Func<IPublicObject>> CreateDefault =
-
-        //private Expression<Func<string, IPublicObject>> CreateDefault => h => _creator.Get();
-
-        public Registration(Container container, IEnumerable<MethodInfo> methods, IEnumerable<PropertyInfo> properties)
+        public Registration(Container container)
         {
             _container = container;
-            _methods = methods;
-            _creator = _container.GetInstance<ICreator>();
-            _properties = properties;
+            var objectRepository = _container.GetInstance<IObjectRepository>();
+            _createExpression = h => objectRepository.Get(h);
         }
 
         /// <summary>
@@ -85,8 +70,8 @@ namespace CommonAddin
                 methodCallExpression = Expression.Convert(methodCallExpression, typeof(IPublicObject));
 
             var block = Expression.Block(
-                new[] {instanceParam},
-                Expression.Assign(instanceParam,Expression.Convert(Expression.Invoke(CreatePublic, handleParam),method.DeclaringType)),
+                new[] { instanceParam },
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(_createExpression, handleParam), method.DeclaringType)),
                 methodCallExpression
             );
 
@@ -96,15 +81,12 @@ namespace CommonAddin
             var callExpr = Expression.Lambda(block, allArguments);
             return callExpr;
         }
-
-        [DebuggerStepThrough]
         private LambdaExpression ConvertFactoryToStatic(MethodInfo method, List<ParameterExpression> arguments)
         {
-            return (LambdaExpression) typeof(Registration).GetMethod(nameof(ConvertFactoryToStaticEx))
-                .MakeGenericMethod(method.DeclaringType)
-                .Invoke(this, new object[] {method, arguments});
+            return (LambdaExpression)typeof(Registration).GetMethod(nameof(ConvertFactoryToStaticEx))
+                .MakeGenericMethod(method.DeclaringType.DeclaringType)
+                .Invoke(this, new object[] { method, arguments });
         }
-
         /// <summary>
         ///     Create static method from factory create method by invoking create method from default public object using Container
         /// </summary>
@@ -113,13 +95,12 @@ namespace CommonAddin
         /// <param name="callArguments"></param>
         /// <returns></returns>
         // #DefaultConversion Create default instance of public object before invoking the method
-        public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<ParameterExpression> arguments) where T : IPublicObject
+        public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<ParameterExpression> arguments) where T : class
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
-            var creator = _container.GetInstance<ICreator<T>>();
-
-            Expression<Func<IPublicObject>> createExpression = () => creator.Default();
+            //Expression<Func<IPublicObject>> createExpression = () => _creator.Default<T>();
+            Expression<Func<IFactory<T>>> createExpression = () => _container.GetInstance<IFactory<T>>();
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
 
@@ -138,7 +119,6 @@ namespace CommonAddin
             var callExpr = Expression.Lambda(block, arguments);
             return callExpr;
         }
-
         /// <summary>
         /// Wraps the method into a lambda to associate with excel UDF
         /// </summary>
@@ -150,7 +130,7 @@ namespace CommonAddin
                 return null;
 
             var arguments = method.GetParameters()
-                .Select<ParameterInfo,Expression>(p => Expression.Parameter(p.ParameterType,p.Name))
+                .Select<ParameterInfo, Expression>(p => Expression.Parameter(p.ParameterType, p.Name))
                 .Select(e => e as ParameterExpression).ToList();
 
             if (!method.IsStatic)
@@ -159,7 +139,6 @@ namespace CommonAddin
             var callExpr = Expression.Call(method, arguments);
             return Expression.Lambda(callExpr, method.Name, arguments);
         }
-
         /// <summary>
         /// Wraps the property into a RTD getter lambda to associate with excel UDF
         /// </summary>
@@ -171,8 +150,8 @@ namespace CommonAddin
             var method = typeof(BindExtensions).GetMethod(nameof(BindExtensions.GetProperty));
             var block = Expression.Block(
                 new[] { instanceParam },
-                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
-                Expression.Call(method,instanceParam,Expression.Constant(property.Name))
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(_createExpression, handleParam), property.DeclaringType)),
+                Expression.Call(method, instanceParam, Expression.Constant(property.Name))
             );
 
             var allArguments = new List<ParameterExpression> { handleParam };
@@ -180,7 +159,6 @@ namespace CommonAddin
             var callExpr = Expression.Lambda(block, allArguments);
             return callExpr;
         }
-
         /// <summary>
         /// Wraps the property into a RTD bind lambda to associate with excel UDF
         /// </summary>
@@ -193,8 +171,8 @@ namespace CommonAddin
 
             var block = Expression.Block(
                 new[] { instanceParam },
-                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(CreatePublic, handleParam), property.DeclaringType)),
-                Expression.Call(method,instanceParam, Expression.Constant(property.Name))
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(_createExpression, handleParam), property.DeclaringType)),
+                Expression.Call(method, instanceParam, Expression.Constant(property.Name))
             );
 
             var allArguments = new List<ParameterExpression> { handleParam };
@@ -202,71 +180,77 @@ namespace CommonAddin
             var callExpr = Expression.Lambda(block, allArguments);
             return callExpr;
         }
-
         /// <summary>
-        ///     Export all methods marked with [IExcelFunction] as excel functions
+        /// Register method as excel function
         /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ExcelFunctionRegistration> GetAllRegistrations()
+        /// <param name="methodInfo"></param>
+        public void AddMethod(MethodInfo methodInfo)
         {
-            var registrationList = new List<ExcelFunctionRegistration>();
-            foreach (var methodInfo in _methods)
+            var attribute = (IExcelFunctionAttribute) methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute))
+                .Single();
+            var lambda = WrapMethod(methodInfo, attribute.IsFactory);
+            var parameters = methodInfo.GetParameters()
+                .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
+                .Select(p => new ExcelParameterRegistration(p))
+                .ToList();
+            var name = methodInfo.Name;
+            if (!methodInfo.IsStatic)
             {
-                var attribute = (IExcelFunctionAttribute)methodInfo.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
-                var lambda = WrapMethod(methodInfo, attribute.IsFactory);
-                var parameters = methodInfo.GetParameters()
-                    .Where(p => !p.ParameterType.GetInterfaces().Contains(typeof(IInjectable)))
-                    .Select(p => new ExcelParameterRegistration(p)).ToList();
-                var name = methodInfo.Name;
-                if (!methodInfo.IsStatic)
-                {
-                    if(!attribute.IsFactory)
+                if (!attribute.IsFactory)
                     // add handle as a string parameter to resolve the instance
-                        parameters.Insert(0, new ExcelParameterRegistration(
-                            new ExcelArgumentAttribute()
-                            {
-                                AllowReference = true,
-                                Description = "Object handle",
-                                Name = "Handle"
-                            }));
-                    if (!methodInfo.DeclaringType.IsGenericType)
-                        name = methodInfo.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + name;
-                    else
-                        // Generic base functions use the underlying type
-                        name = methodInfo.DeclaringType.GenericTypeArguments.First().Name + "." + name;
+                    parameters.Insert(0, new ExcelParameterRegistration(
+                        new ExcelArgumentAttribute()
+                        {
+                            AllowReference = true,
+                            Description = "Object handle",
+                            Name = "Handle"
+                        }));
+                if (attribute.IsFactory)
+                {
+                    var type = methodInfo.DeclaringType.DeclaringType;
+                    while (!type.GenericTypeArguments.Any())
+                        type = type.BaseType;
+                    name = type.GenericTypeArguments.First().Name + "." + name;
                 }
-
-                var registration = new ExcelFunctionRegistration(lambda,attribute.ToExcelFunctionAttribute(name), parameters);
-                registrationList.Add(registration);
+                else if (!methodInfo.DeclaringType.IsGenericType)
+                    name = methodInfo.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + name;
+                else
+                    // Generic base functions use the underlying type
+                    name = methodInfo.DeclaringType.GenericTypeArguments.First().Name + "." + name;
             }
-            // #PropertyConversion Register Get* and Bind* methods for properties marked with IExcelFunction
-            foreach (var property in _properties.Where(p => p.DeclaringType.GetInterfaces().Contains(typeof(IBindable))))
-            {
-                var getLambda = GetProperty(property);
-                var attribute = (IExcelFunctionAttribute)property.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
-                var handleParameter = new ExcelParameterRegistration(new ExcelArgumentAttribute() { Name = "Handle" });
 
-                // we do not register twice the base properties
-                if (property.ReflectedType != property.DeclaringType)
-                    continue;
-
-                var className = property.ReflectedType.Name.Replace("Public","");
-
-                var getRegistration = new ExcelFunctionRegistration(getLambda,
-                    //attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Get" +property.Name),
-                    attribute.ToExcelFunctionAttribute(className + "." + "Get" + property.Name),
-                    new List<ExcelParameterRegistration>() { handleParameter });
-                registrationList.Add(getRegistration);
-
-                var bindLambda = BindProperty(property);
-                var bindRegistration = new ExcelFunctionRegistration(bindLambda,
-                    attribute.ToExcelFunctionAttribute(className + "." + "Bind" + property.Name),
-                    new List<ExcelParameterRegistration>() { handleParameter });
-                registrationList.Add(bindRegistration);
-
-            }
-            return registrationList;
+            var registration =
+                new ExcelFunctionRegistration(lambda, attribute.ToExcelFunctionAttribute(name), parameters);
+            _registrations.Add(registration);
         }
+        /// <summary>
+        /// Register property as excel function
+        /// </summary>
+        /// <param name="property"></param>
+        public void AddProperty(PropertyInfo property)
+        {
+            var getLambda = GetProperty(property);
+            var attribute = (IExcelFunctionAttribute)property.GetCustomAttributes(typeof(IExcelFunctionAttribute)).Single();
+            var handleParameter = new ExcelParameterRegistration(new ExcelArgumentAttribute() { Name = "Handle" });
 
+            // we do not register twice the base properties
+            if (property.ReflectedType != property.DeclaringType)
+                return;
+
+            var className = property.ReflectedType.Name.Replace("Public", "");
+
+            var getRegistration = new ExcelFunctionRegistration(getLambda,
+                //attribute.ToExcelFunctionAttribute(property.DeclaringType.BaseType.GenericTypeArguments.First().Name + "." + "Get" +property.Name),
+                attribute.ToExcelFunctionAttribute(className + "." + "Get" + property.Name),
+                new List<ExcelParameterRegistration>() { handleParameter });
+            _registrations.Add(getRegistration);
+
+            var bindLambda = BindProperty(property);
+            var bindRegistration = new ExcelFunctionRegistration(bindLambda,
+                attribute.ToExcelFunctionAttribute(className + "." + "Bind" + property.Name),
+                new List<ExcelParameterRegistration>() { handleParameter });
+            _registrations.Add(bindRegistration);
+        }
+        public IEnumerable<ExcelFunctionRegistration> GetAllRegistrations() => _registrations;
     }
 }

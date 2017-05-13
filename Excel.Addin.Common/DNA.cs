@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelDna.Registration;
 using ExcelInterfaces;
-using Microsoft.Office.Interop.Excel;
 using SimpleInjector;
-using SimpleInjector.Advanced;
 using Application = Microsoft.Office.Interop.Excel.Application;
 using Error = ExcelInterfaces.Error;
+using Registration = Excel.Addin.Common.Registration;
 
 namespace CommonAddin
 {
@@ -61,7 +57,14 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            var registration = new Registration(Container,Methods,Properties);
+            var registration = new Registration(Container);
+
+            foreach (var methodInfo in Methods)
+                registration.AddMethod(methodInfo);
+
+            foreach(var propertyInfo in Properties)
+                registration.AddProperty(propertyInfo);
+
             var bindingService = Container.GetInstance<IBindingService>();
             var application = (Application)ExcelDnaUtil.Application;
             application.SheetChange += bindingService.OnSheetChange;
@@ -82,7 +85,7 @@ namespace CommonAddin
         /// <returns></returns>
         private ParameterConversionConfiguration GetParameterConversionConfig()
         {
-            var creator = Container.GetInstance<ICreator>();
+            var objectRepository = Container.GetInstance<IObjectRepository>();
 
             var paramConversionConfig = new ParameterConversionConfiguration()
 
@@ -96,7 +99,7 @@ namespace CommonAddin
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToInt32).ToArray())
                 .AddParameterConversion((object[] inputs) => inputs.Select(TypeConversion.ConvertToString).ToArray())
                 // #ParameterConversion Convert handle to public object
-                .AddParameterConversion((object obj) => creator.Get((string) obj))
+                .AddParameterConversion((object obj) => objectRepository.Get((string) obj))
                 //.AddParameterConversion((string handle) => handle.Contains("::") ? Container.GetInstance<ICreator>().Create(handle) : handle )
                 //.AddParameterConversion((Type type, ExcelParameterRegistration paramReg) =>
                 //    (Expression<Func<object, IPublicObject>>)(obj => creator.Create((string)obj)), typeof(IPublicObject))
