@@ -2,11 +2,9 @@ using System.Linq;
 using System.Reflection;
 using ExcelInterfaces;
 using IoC;
-using JetBrains.Annotations;
 
 namespace Public
 {
-    [UsedImplicitly]
     public class ObjectRepository : IObjectRepository
     {
         private readonly IContainerService _containerService;
@@ -26,8 +24,8 @@ namespace Public
             var oObject = ExcelInterfaces.Public.This(handle);
 
             foreach (var prop in oObject.GetType()
-                .GetProperties()
-                .Where(p => p.PropertyType.GetInterfaces().Contains(typeof(IInjectable))))
+                .GetRuntimeProperties()
+                .Where(p => typeof(IInjectable).GetTypeInfo().IsAssignableFrom(p.PropertyType.GetTypeInfo())))
 
             {
                 var service = _containerService.GetInstance(prop.PropertyType);
