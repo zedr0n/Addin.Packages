@@ -94,7 +94,7 @@ namespace Excel.Addin.Common
         /// <param name="arguments"></param>
         /// <param name="callArguments"></param>
         /// <returns></returns>
-        // #DefaultConversion Create default instance of public object before invoking the method
+        // #FactoryConversion Inject factory instance before invoking the method
         public LambdaExpression ConvertFactoryToStaticEx<T>(MethodInfo method, List<ParameterExpression> arguments) where T : class
         {
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
