@@ -6,39 +6,14 @@ using System.Xml.Serialization;
 
 namespace ExcelInterfaces
 {
-    public class Public<T> : Public, IEquatable<Public<T>> where T : class
+    public class Public<T> : Public, IBindable, IEquatable<Public<T>> where T : class
     {
         public T Instance { get; }
         public Dictionary<Type,IPublicObject> Children = new Dictionary<Type, IPublicObject>();
         public override object Object => Instance;
 
-        public new static Public<T> This(string handle)
-        {
-            IPublicObject publicObject;
-            if (!Globals.TryGetItem(handle, out publicObject))
-                throw new ObjectMissing(handle);
-
-            var instance = publicObject.GetType().GetRuntimeProperty(nameof(Instance)).GetValue(publicObject);
-
-            //var obj =  new Public<T>(handle, instance as T);
-            //Globals.SetItem(handle,obj);
-            return publicObject as Public<T>;
-        }
-
-        public static bool TryThis(string handle, out Public<T> obj)
-        {
-            obj = null;
-            try
-            {
-                obj = This(handle);
-                return true;
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-            return false;
-        } 
+        public IBindingService BindingService { get; set; }
+        public IObservableRtdService RtdService { get; set; }
 
         public string AddChild<TChild>(TChild obj) where TChild : class
         {
