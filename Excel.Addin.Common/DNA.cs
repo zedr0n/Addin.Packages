@@ -25,7 +25,9 @@ namespace CommonAddin
     {
         public Container Container { get; set; }
         public List<MethodInfo> Methods { get; set; } = new List<MethodInfo>();
+        public List<MethodInfo> Methods2 { get; set; } = new List<MethodInfo>();
         public List<PropertyInfo> Properties { get; set; } = new List<PropertyInfo>();
+        public List<PropertyInfo> Properties2 { get; set; } = new List<PropertyInfo>();
 
 
         /// <summary>
@@ -57,13 +59,19 @@ namespace CommonAddin
                              .ProcessParamsRegistrations()
                              .RegisterFunctions();
 
-            var registration = new Registration(Container);
+            var registration = Container.GetInstance<Registration>();//new Registration(Container);
 
             foreach (var methodInfo in Methods)
                 registration.AddMethod(methodInfo);
 
+            foreach(var methodInfo in Methods2)
+                registration.AddMethod2(methodInfo);
+
             foreach(var propertyInfo in Properties)
                 registration.AddProperty(propertyInfo);
+
+            foreach(var propertyInfo in Properties2)
+                registration.AddProperty2(propertyInfo);
 
             var bindingService = Container.GetInstance<IBindingService>();
             var application = (Application)ExcelDnaUtil.Application;

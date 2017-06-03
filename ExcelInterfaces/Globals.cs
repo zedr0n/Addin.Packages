@@ -72,7 +72,7 @@ namespace ExcelInterfaces
 
         public static string StripHandle(string handle)
         {
-            return handle.Split(new char[] {':'}).FirstOrDefault();
+            return handle.Split(':').FirstOrDefault();
         }
     }
 }

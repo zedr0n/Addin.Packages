@@ -1,9 +1,8 @@
 using System.Linq;
 using System.Reflection;
-using ExcelInterfaces;
 using IoC;
 
-namespace Public
+namespace ExcelInterfaces
 {
     public class ObjectRepository : IObjectRepository
     {

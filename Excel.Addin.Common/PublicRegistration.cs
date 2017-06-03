@@ -38,10 +38,12 @@ namespace Excel.Addin.Common
         private readonly Expression<Func<string, IPublicObject>> _createExpression;
         private readonly Container _container;
         private readonly List<ExcelFunctionRegistration> _registrations = new List<ExcelFunctionRegistration>();
+        private readonly ExpressionBuilder _expressionBuilder;
 
-        public Registration(Container container)
+        public Registration(Container container, ExpressionBuilder expressionBuilder)
         {
             _container = container;
+            _expressionBuilder = expressionBuilder;
             var objectRepository = _container.GetInstance<IObjectRepository>();
             _createExpression = h => objectRepository.Get(h);
         }
@@ -252,5 +254,53 @@ namespace Excel.Addin.Common
             _registrations.Add(bindRegistration);
         }
         public IEnumerable<ExcelFunctionRegistration> GetAllRegistrations() => _registrations;
+
+        /// <summary>
+        /// Register method as excel function
+        /// </summary>
+        /// <param name="methodInfo"></param>
+        public void AddMethod2(MethodInfo methodInfo)
+        {
+            var attribute = (ExportAttribute)methodInfo.GetCustomAttributes(typeof(ExportAttribute))
+                .Single();
+
+            var lambda = _expressionBuilder.BuildMethodExpression(methodInfo);
+
+            var parameters = lambda.Parameters
+                .Select(p => new ExcelParameterRegistration(new ExcelArgumentAttribute
+                    {
+                        AllowReference = true,
+                        Name = p.Name
+                    })).ToList();
+            var name = attribute.Name;
+
+            var excelAttribute = new ExcelFunctionAttribute(attribute.Description) { Name = name };
+
+            var registration =
+                new ExcelFunctionRegistration(lambda, excelAttribute, parameters);
+            _registrations.Add(registration);
+        }
+
+        public void AddProperty2(PropertyInfo propertyInfo)
+        {
+            var attribute = (ExportAttribute)propertyInfo.GetCustomAttributes(typeof(ExportAttribute))
+                .Single();
+
+            var lambda = _expressionBuilder.BuildPropertyExpression(propertyInfo);
+
+            var parameters = lambda.Parameters
+                .Select(p => new ExcelParameterRegistration(new ExcelArgumentAttribute
+                {
+                    AllowReference = true,
+                    Name = p.Name
+                })).ToList();
+            var name = attribute.Name;
+
+            var excelAttribute = new ExcelFunctionAttribute(attribute.Description) { Name = name };
+
+            var registration =
+                new ExcelFunctionRegistration(lambda, excelAttribute, parameters);
+            _registrations.Add(registration);
+        }
     }
 }

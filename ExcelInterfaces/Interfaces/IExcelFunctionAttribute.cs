@@ -1,18 +1,11 @@
 ﻿using System;
+using IoC;
 
 namespace ExcelInterfaces
 {
-    [AttributeUsage(AttributeTargets.Assembly,Inherited = false, AllowMultiple = false)]
-    public class PublicAttribute : Attribute
-    {
-        
-    }
-
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class IExcelFunctionAttribute : Attribute
+    public class IExcelFunctionAttribute : ExportAttribute
     {
-        public string Name = null;
-        public string Description = null;
         public readonly string Category = null;
         public readonly string HelpTopic = null;
         public bool IsVolatile = false;
