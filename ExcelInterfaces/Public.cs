@@ -13,7 +13,7 @@ namespace ExcelInterfaces
         public override object Object => Instance;
 
         public IBindingService BindingService { get; set; }
-        public IObservableRtdService RtdService { get; set; }
+        public IRtdService RtdService { get; set; }
 
         public string AddChild<TChild>(TChild obj) where TChild : class
         {

@@ -274,7 +274,11 @@ namespace Excel.Addin.Common
                     })).ToList();
             var name = attribute.Name;
 
-            var excelAttribute = new ExcelFunctionAttribute(attribute.Description) { Name = name };
+            var excelAttribute = new ExcelFunctionAttribute(attribute.Description)
+            {
+                Name = name,
+                IsMacroType = attribute.IsMacroType
+            };
 
             var registration =
                 new ExcelFunctionRegistration(lambda, excelAttribute, parameters);

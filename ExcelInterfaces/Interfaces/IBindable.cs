@@ -9,7 +9,7 @@ namespace ExcelInterfaces
     public interface IBindable : IPublicObject
     {
         IBindingService BindingService { get; }
-        IObservableRtdService RtdService { get; }
+        IRtdService RtdService { get; }
     }
 
     public static class BindExtensions

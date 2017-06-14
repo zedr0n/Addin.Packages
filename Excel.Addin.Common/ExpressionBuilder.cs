@@ -23,7 +23,7 @@ namespace Excel.Addin.Common
         {
             var instanceType = methodInfo.DeclaringType;
 
-            if (typeof(IFactory).IsAssignableFrom(instanceType))
+            if (typeof(IFactory).IsAssignableFrom(instanceType) || methodInfo.GetCustomAttribute<ExportAttribute>().IsFactory)
                 return BuildFactoryExpression(methodInfo);
             else if (methodInfo.IsStatic)
                 return BuildStaticExpression(methodInfo);
@@ -132,7 +132,7 @@ namespace Excel.Addin.Common
             var handleParam = Expression.Parameter(typeof(string), "handle");
             var method = typeof(BindExtensions).GetMethod(nameof(BindExtensions.GetProperty));
 
-            Expression<Func<string, object>> instanceExpression = (h) => _repository.GetByHandle(h);
+            Expression<Func<string, object>> instanceExpression = h => _repository.GetByHandle(h);
 
             var block = Expression.Block(
                 new[] { instanceParam },
@@ -157,14 +157,30 @@ namespace Excel.Addin.Common
 
             var instanceParam = Expression.Parameter(instanceType);
             var handleParam = Expression.Parameter(typeof(string),"Handle");
+            var returnParam = Expression.Parameter(methodInfo.ReturnType);
 
             Expression<Func<string,object>> instanceExpression = (h) => _repository.GetByHandle(h);
+            Expression<Func<object, string>> returnExpression = o => _repository.ResolveHandle(o);
 
-            var blockExpression = Expression.Block(
+            var isPrimitive = methodInfo.ReturnType.IsPrimitive || methodInfo.ReturnType == typeof(string);
+
+            var invokeBlock = Expression.Block(
+                // var instance = _repository.GetByHandle(handle)
+                // var o = instance.Invoke(...)
+                // return o
                 new[] { instanceParam },
-                Expression.Assign(instanceParam, Expression.Invoke(instanceExpression,handleParam)),    // var instance = _repository.GetByHandle(handle)
-                Expression.Call(instanceParam, methodInfo, parameterExpressions)                        // return instance.Invoke(...)
+                Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(instanceExpression, handleParam), methodInfo.DeclaringType)),
+                Expression.Call(instanceParam, methodInfo, parameterExpressions)     
             );
+            var blockExpression = invokeBlock;
+            if(!isPrimitive)
+                blockExpression = Expression.Block(
+                    // return isPrimitive ? o : _repository.ResolveHandle(o)
+                    new[] { returnParam },
+                    Expression.Assign(returnParam,invokeBlock),
+                    Expression.Invoke(returnExpression,returnParam)
+                );
+
 
             var allParameterExpressions = new List<ParameterExpression>(parameterExpressions);
             allParameterExpressions.Insert(0, handleParam);

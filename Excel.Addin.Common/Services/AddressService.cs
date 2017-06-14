@@ -1,5 +1,7 @@
+using System.Reflection;
 using ExcelDna.Integration;
 using ExcelInterfaces;
+using Microsoft.Office.Interop.Excel;
 
 namespace CommonAddin
 {
@@ -19,5 +21,7 @@ namespace CommonAddin
             return cellReference;
 
         }
+
+
     }
 }
