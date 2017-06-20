@@ -45,6 +45,12 @@ namespace Excel.Addin.Common
             _viewModel = viewModel;
         }
 
+        /// <summary>
+        /// Bind the view model property change to view using RTD
+        /// </summary>
+        /// <param name="property"></param>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <returns></returns>
         protected TProperty Bind<TProperty>(Expression<Func<TViewModel, TProperty>> property) => Bind(_viewModel, property);
 
         protected TProperty Get<TProperty>(Expression<Func<TViewModel, TProperty>> property) => Get(_viewModel, property);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ExcelInterfaces;
 
@@ -33,6 +34,8 @@ namespace Excel.Addin.Common
             var handle = TimestampHandle(handleName + "::" + obj.GetType().Name);
             if(_dictionary.ContainsKey(handle))
                 throw new Error("Object with this handle already exists");
+
+            Debug.Write(handle);
 
             _dictionary[handle] = obj;
         }
