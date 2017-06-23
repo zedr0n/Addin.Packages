@@ -6,6 +6,7 @@ namespace ExcelInterfaces
     {
         IStatusService StatusService { get; set; }
         bool RegisterButton(string buttonName, string functionName,string handle);
+        bool RegisterButton(string buttonName, string functionName, object instance);
         string GetAssociatedHandle();
     }
 }

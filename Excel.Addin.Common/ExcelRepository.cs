@@ -10,19 +10,8 @@ namespace Excel.Addin.Common
     {
         private readonly Dictionary<string, object> _dictionary = new Dictionary<string, object>();
 
-        private readonly IRegistrationService _registrationService;
-
-        public ExcelRepository(IRegistrationService registrationService)
-        {
-            _registrationService = registrationService;
-        }
-
         public object GetByHandle(string handle)
         {
-            if (handle == "")
-                // #RegistrationService get the handle associated with the button
-                handle = _registrationService.GetAssociatedHandle();
-
             if (!_dictionary.ContainsKey(handle))
                 throw new ObjectMissing(handle);
 
@@ -56,7 +45,7 @@ namespace Excel.Addin.Common
 
         public static string StripHandle(string handle)
         {
-            return handle.Split(new char[] { ':' }).FirstOrDefault();
+            return handle.Split(':').FirstOrDefault();
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using ExcelDna.Integration;
 using ExcelDna.Registration.Utils;
 using ExcelInterfaces;
+using Microsoft.Office.Interop.Excel;
 
 namespace CommonAddin
 {
@@ -23,6 +25,12 @@ namespace CommonAddin
         public TProperty ObserveProperty<TInstance, TProperty>(string functionName, TInstance instance, Expression<Func<TInstance, TProperty>> property) where TInstance : INotifyPropertyChanged
         {
             return (TProperty) Observe(functionName, null, () => instance.RxValue(property));
+        }
+
+        public RtdService()
+        {
+            var application = (Application) ExcelDnaUtil.Application;
+            application.RTD.ThrottleInterval = 0;
         }
     }
 }

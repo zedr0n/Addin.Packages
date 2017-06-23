@@ -8,6 +8,7 @@ namespace CommonAddin
     public class RegistrationService : IRegistrationService
     {
         private readonly Dictionary<string,string> _buttonHandles = new Dictionary<string, string>();
+        private readonly IExcelRepository _excelRepository;
 
         public IStatusService StatusService { get; set; }
 
@@ -24,6 +25,11 @@ namespace CommonAddin
             return true;
         }
 
+        public bool RegisterButton(string buttonName, string functionName, object instance)
+        {
+            return RegisterButton(buttonName, functionName, _excelRepository.ResolveHandle(instance));
+        }
+
         /// <summary>
         ///     Get the handle of the object used for registration for the caller object
         /// </summary>
@@ -35,9 +41,10 @@ namespace CommonAddin
             return reference != null ? _buttonHandles[reference] : null;
         }
 
-        public RegistrationService(IStatusService statusService)
+        public RegistrationService(IStatusService statusService, IExcelRepository excelRepository)
         {
             StatusService = statusService;
+            _excelRepository = excelRepository;
         }
     }
 }

@@ -12,11 +12,13 @@ namespace Excel.Addin.Common
     {
         private readonly IContainerService _containerService;
         private readonly IExcelRepository _repository;
+        private readonly IRegistrationService _registrationService;
 
-        public ExpressionBuilder(IContainerService containerService, IExcelRepository repository)
+        public ExpressionBuilder(IContainerService containerService, IExcelRepository repository, IRegistrationService registrationService)
         {
             _containerService = containerService;
             _repository = repository;
+            _registrationService = registrationService;
         }
 
         public LambdaExpression BuildMethodExpression(MethodInfo methodInfo)
@@ -160,15 +162,21 @@ namespace Excel.Addin.Common
             var returnParam = Expression.Parameter(methodInfo.ReturnType);
 
             Expression<Func<string,object>> instanceExpression = (h) => _repository.GetByHandle(h);
+            Expression<Func<object>> buttonExpression = () => _registrationService.GetAssociatedHandle();
             Expression<Func<object, string>> returnExpression = o => _repository.ResolveHandle(o);
 
             var isPrimitive = methodInfo.ReturnType.IsPrimitive || methodInfo.ReturnType == typeof(string);
 
             var invokeBlock = Expression.Block(
+                // if (handle == "" )
+                //  handle = _registrationService.GetAssociatedHandle()
                 // var instance = _repository.GetByHandle(handle)
                 // var o = instance.Invoke(...)
                 // return o
                 new[] { instanceParam },
+                Expression.IfThen(Expression.IsTrue(Expression.Equal(handleParam,Expression.Constant(""))),
+                    Expression.Assign(handleParam,Expression.Convert(Expression.Invoke(buttonExpression),typeof(string)))
+                    ),
                 Expression.Assign(instanceParam, Expression.Convert(Expression.Invoke(instanceExpression, handleParam), methodInfo.DeclaringType)),
                 Expression.Call(instanceParam, methodInfo, parameterExpressions)     
             );
