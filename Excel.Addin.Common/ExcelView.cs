@@ -18,15 +18,13 @@ namespace Excel.Addin.Common
         protected TProperty Bind<T,TProperty>(T viewModel,Expression<Func<T, TProperty>> property)
             where T : class,INotifyPropertyChanged
         {
-            _bindingService.AddBinding(viewModel, property);
-            return Get(viewModel, property);
-
+            return _bindingService.AddBinding(viewModel, property, BINDING_TYPE.TWO_WAY);
         }
 
         protected TProperty Get<T, TProperty>(T viewModel, Expression<Func<T, TProperty>> property)
             where T : class, INotifyPropertyChanged
         {
-            return _rtdService.ObserveProperty(nameof(Bind) + property.GetPropertyInfo().Name + "." + viewModel.GetHashCode(), viewModel, property);
+            return _bindingService.AddBinding(viewModel,property);
         }
 
         protected ExcelView(IBindingService bindingService, IRtdService rtdService, IRegistrationService registrationService)

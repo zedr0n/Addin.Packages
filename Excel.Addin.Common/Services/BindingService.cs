@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using ExcelDna.Integration;
 using ExcelInterfaces;
 using Microsoft.Office.Interop.Excel;
-using Application = Microsoft.Office.Interop.Excel.Application;
-
 
 namespace CommonAddin
 {
@@ -37,25 +36,31 @@ namespace CommonAddin
         private readonly Dictionary<string, string> _cellHandles = new Dictionary<string, string>();
 
         public IAddressService AddressService { get; set; }
+        private readonly IRtdService _rtdService;
 
-        public BindingService(IAddressService addressService)
+        public BindingService(IAddressService addressService, IRtdService rtdService)
         {
             AddressService = addressService;
+            _rtdService = rtdService;
         }
 
-        public TProperty AddBinding<T,TProperty>(T obj, string propertyName) where T : class
+        public TProperty AddBinding<T,TProperty>(T obj, string propertyName) where T : class, INotifyPropertyChanged
         {
             var lambda = BindExtensions.GetPropertyEx<T, TProperty>(obj, propertyName);
             AddBinding(obj,lambda);
             return lambda.Compile()(obj);
         }
 
-        public TProperty AddBinding<T,TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda) where T : class
+        public TProperty AddBinding<T,TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda, BINDING_TYPE bindingType = BINDING_TYPE.ONE_WAY) where T : class, INotifyPropertyChanged
         {
-            var cell = AddressService.GetAddress();
-            var formula = GetFormula();
-            _bindings[cell] = new Binding<T, TProperty>(cell, obj, memberLambda,formula);
-            return memberLambda.Compile()(obj);
+            if (bindingType == BINDING_TYPE.TWO_WAY)
+            {
+                var cell = AddressService.GetAddress();
+                var formula = GetFormula();
+                _bindings[cell] = new Binding<T, TProperty>(cell, obj, memberLambda, formula);
+            }
+
+            return _rtdService.ObserveProperty("Bind" + memberLambda.GetPropertyInfo().Name + "." + obj.GetHashCode(), obj, memberLambda);
         }
 
         public void OnValueChanged(Range range)

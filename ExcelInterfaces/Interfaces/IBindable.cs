@@ -23,7 +23,7 @@ namespace ExcelInterfaces
         }
 
         public static object BindPropertyEx<TInstance, TProperty>(this IBindable This, string propertyName)
-            where TInstance : class
+            where TInstance : class, INotifyPropertyChanged
         {
             return This.BindingService.AddBinding<TInstance, TProperty>(This.Object as TInstance, propertyName);
         }
