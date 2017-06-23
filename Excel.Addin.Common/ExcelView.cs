@@ -13,7 +13,6 @@ namespace Excel.Addin.Common
     {
         protected readonly IBindingService _bindingService;
         protected readonly IRegistrationService _registrationService;
-        protected readonly IRtdService _rtdService;
 
         protected TProperty Bind<T,TProperty>(T viewModel,Expression<Func<T, TProperty>> property)
             where T : class,INotifyPropertyChanged
@@ -27,10 +26,9 @@ namespace Excel.Addin.Common
             return _bindingService.AddBinding(viewModel,property);
         }
 
-        protected ExcelView(IBindingService bindingService, IRtdService rtdService, IRegistrationService registrationService)
+        protected ExcelView(IBindingService bindingService, IRegistrationService registrationService)
         {
             _bindingService = bindingService;
-            _rtdService = rtdService;
             _registrationService = registrationService;
         }
 
@@ -47,9 +45,9 @@ namespace Excel.Addin.Common
     {
         protected readonly TViewModel _viewModel;
 
-        protected ExcelView(IBindingService bindingService, IRtdService rtdService, 
+        protected ExcelView(IBindingService bindingService, 
             TViewModel viewModel,IRegistrationService registrationService) : 
-            base(bindingService, rtdService,registrationService)
+            base(bindingService,registrationService)
         {
             _viewModel = viewModel;
         }
