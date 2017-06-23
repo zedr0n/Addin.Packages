@@ -66,14 +66,15 @@ namespace CommonAddin
             if (_bindings.All(x => x.Key != cell))
                 return;
             var binding = _bindings[cell];
-            if (value == null)
+            if (value == null || (string) value == "")
                 _bindings[cell] = null;
             else
+            {
                 binding?.Set(value);
-
-            // restore the formula
-            if((string) range.FormulaR1C1 != binding.Formula)
-                range.FormulaR1C1 = binding.Formula;
+                // restore the formula
+                if ((string) range.FormulaR1C1 != binding.Formula)
+                    range.FormulaR1C1 = binding.Formula;
+            }
 
             // reset the handle association on change
             //_cellHandles[cell] = null;
