@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace IoC
 {
-    public interface IEventStore
-    {
-        IEnumerable<IVersionedEvent> GetEvents();
-    }
-
     public interface IAggregateEventStore<T> where T : class
     {
         /// <summary>
