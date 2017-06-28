@@ -5,7 +5,7 @@ using IoC;
 
 namespace ExcelInterfaces
 {
-    public class PublicFactory<TPublic> : IFactory<TPublic> where TPublic : class
+    public class PublicFactory<TPublic> : IPublicFactory<TPublic> where TPublic : class
     {
         private readonly IContainerService _containerService;
         protected PublicFactory(IContainerService containerService)

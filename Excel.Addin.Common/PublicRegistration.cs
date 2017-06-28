@@ -102,7 +102,7 @@ namespace Excel.Addin.Common
             Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
 
             //Expression<Func<IPublicObject>> createExpression = () => _creator.Default<T>();
-            Expression<Func<IFactory<T>>> createExpression = () => _container.GetInstance<IFactory<T>>();
+            Expression<Func<IPublicFactory<T>>> createExpression = () => _container.GetInstance<IPublicFactory<T>>();
 
             var instanceParam = Expression.Parameter(method.DeclaringType, "instance");
 

@@ -1,4 +1,6 @@
-﻿namespace IoC
+﻿using System;
+
+namespace IoC
 {
     public interface IFactory
     {
