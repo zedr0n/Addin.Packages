@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -150,6 +151,8 @@ namespace Excel.Addin.Common
 
         private LambdaExpression BuildInstanceExpression(MethodInfo methodInfo)
         {
+            Debug.Write("Registering " + methodInfo.ReflectedType.Name + "." + methodInfo.Name);
+
             var instanceType = methodInfo.DeclaringType;
             if (instanceType == null)
                 throw new ArgumentException("Method is invalid");

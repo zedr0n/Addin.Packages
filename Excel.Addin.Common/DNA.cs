@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ExcelDna.Integration;
@@ -37,7 +38,8 @@ namespace CommonAddin
         /// <returns></returns>
         private object OnError(object ex)
         {
-            var errorMessage = ex as Error;
+            //var errorMessage = ex as Error;
+            var errorMessage = ex as Exception;
             if (errorMessage == null)
                 return ExcelError.ExcelErrorValue;
 

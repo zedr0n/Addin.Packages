@@ -48,10 +48,7 @@ namespace IoC
     {
         protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            Reset();
             base.OnPropertyChanged(propertyName);
         }
-
-        protected abstract void Reset();
     }
 }

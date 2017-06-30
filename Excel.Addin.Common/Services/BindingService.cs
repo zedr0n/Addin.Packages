@@ -44,20 +44,24 @@ namespace CommonAddin
             _rtdService = rtdService;
         }
 
-        public TProperty AddBinding<T,TProperty>(T obj, string propertyName) where T : class, INotifyPropertyChanged
+        public TProperty AddBinding<T, TProperty>(T obj, string propertyName) where T : class, INotifyPropertyChanged
         {
             var lambda = BindExtensions.GetPropertyEx<T, TProperty>(obj, propertyName);
-            AddBinding(obj,lambda);
+            AddBinding(obj, lambda);
             return lambda.Compile()(obj);
         }
 
-        public TProperty AddBinding<T,TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda, BINDING_TYPE bindingType = BINDING_TYPE.ONE_WAY) where T : class, INotifyPropertyChanged
+        public TProperty AddBinding<T,TProperty>(T obj, Expression<Func<T, TProperty>> memberLambda,
+            Func<object,TProperty> converter = null, BINDING_TYPE bindingType = BINDING_TYPE.ONE_WAY) where T : class, INotifyPropertyChanged
         {
             if (bindingType == BINDING_TYPE.TWO_WAY)
             {
                 var cell = AddressService.GetAddress();
-                var formula = GetFormula();
-                _bindings[cell] = new Binding<T, TProperty>(cell, obj, memberLambda, formula);
+                var binding = new Binding<T, TProperty>(cell, obj, memberLambda, GetFormula());
+                if (converter != null)
+                    binding.Converter = converter;
+
+                _bindings[cell] = binding;
             }
 
             return _rtdService.ObserveProperty("Bind" + memberLambda.GetPropertyInfo().Name + "." + obj.GetHashCode(), obj, memberLambda);
@@ -71,7 +75,7 @@ namespace CommonAddin
             if (_bindings.All(x => x.Key != cell))
                 return;
             var binding = _bindings[cell];
-            if (value == null || (string) value == "")
+            if (value == null || ( value is string && (string) value == ""))
                 _bindings[cell] = null;
             else
             {
@@ -136,9 +140,16 @@ namespace CommonAddin
         // function which is associated with the object action cell
         private readonly Action<TProperty> _property;
 
+        public Func<object, TProperty> Converter { get; set; } = x => (TProperty)x;
+
         public override void Set(object value)
         {
-            _property((TProperty) value);
+            try
+            {
+                var propValue = Converter(value);
+                _property(propValue);
+            }
+            catch (Exception) { }
         }
 
         public Binding(string cell, T obj, Expression<Func<T, TProperty>> memberLamda, string formula = "")
