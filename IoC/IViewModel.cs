@@ -7,7 +7,7 @@ namespace IoC
 
     public interface IViewModel<TCommand> : IViewModel where TCommand : class { }
 
-    public abstract class ViewModel : IViewModel
+    public abstract class ViewModel : IViewModel, IConsumer
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

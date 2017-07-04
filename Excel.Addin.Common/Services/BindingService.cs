@@ -70,7 +70,7 @@ namespace CommonAddin
         public void OnValueChanged(Range range)
         {
             var cell = $"[{range?.Application.ActiveWorkbook.Name}]{range?.Worksheet.Name}{range?.Address}";
-            var value = range?.Value;
+            var value = range?.Value2;
 
             if (_bindings.All(x => x.Key != cell))
                 return;
